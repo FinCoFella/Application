@@ -22,7 +22,7 @@ jobs:
           source: "."
           target: "/home/${{ secrets.AZURE_VM_USER }}/app"
 
-      - name: Run deploy script on VM
+      - name: Set up .env and run deploy script on VM
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.AZURE_VM_IP }}
@@ -30,5 +30,7 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           script: |
             cd /home/${{ secrets.AZURE_VM_USER }}/app
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
             chmod +x deploy.sh
             ./deploy.sh
+
