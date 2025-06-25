@@ -1,33 +1,13 @@
 import tabula
 import pandas as pd
 
-# Adjust 
-pdf_path = "/mnt/c/Users/finco/OneDrive/Documents/Filings/Financials/10QK/WFC/WFC_2Q24_10Q.pdf"
-# Adjust
-tables = tabula.read_pdf(pdf_path, pages=39, multiple_tables=True, stream=True) 
+pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/WFC/WFC_3Q24_10Q.pdf"
+tables = tabula.read_pdf(pdf_path, pages=36, multiple_tables=True, stream=True)
 
 for i, table in enumerate(tables):
     print(f"Table {i}:\n", table, "\n")
 
 df = tables[0]
-
-# Adjust
-def fix_split_rows(table):
-    rows = table['Unnamed: 0'].astype(str).tolist()
-    for i in range(len(rows) - 1):
-        if 'Retail (excl shopping' in rows[i] and 'center)' in rows[i + 1]:
-            table.at[i, 'Unnamed: 0'] = 'Retail'
-            for col in table.columns[1:]:
-                if pd.isna(table.at[i, col]):
-                    table.at[i, col] = ''
-                if pd.notna(table.at[i + 1, col]):
-                    table.at[i, col] += ' ' + str(table.at[i + 1, col])
-            table.drop(index=i + 1, inplace=True)
-            table.reset_index(drop=True, inplace=True)
-            break
-    return table
-
-tables = [fix_split_rows(tbl) for tbl in tables]
 
 def format_numeric_columns(df):
     df_formatted = df.copy()
@@ -88,10 +68,9 @@ df_total = df_total[df_total['Property Type'] != 'By property:']
 print("\n========== DataFrame 3: Total CRE Loans Outstanding ==========")
 print(format_numeric_columns(df_total))
 
-# Adjust
-df_total.to_csv("WFC_2Q24_CRE_Totals.csv", index=False)
-# Adjust
-with open("Load_WFC_2Q24_CRE_Totals.py", "w") as f:
+df_total.to_csv("WFC_3Q24_CRE_Totals.csv", index=False)
+
+with open("Load_WFC_3Q24_CRE_Totals.py", "w") as f:
     f.write("import pandas as pd\n\n")
     f.write("def load_data():\n")
-    f.write("    return pd.read_csv('WFC_2Q24_CRE_Totals.csv')\n") # Adjust
+    f.write("    return pd.read_csv('WFC_3Q24_CRE_Totals.csv')\n")

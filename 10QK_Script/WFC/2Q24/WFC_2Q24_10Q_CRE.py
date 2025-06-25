@@ -1,10 +1,10 @@
 import tabula
 import pandas as pd
 
+# Adjust 
+pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/WFC/WFC_2Q24_10Q.pdf"
 # Adjust
-pdf_path = "/mnt/c/Users/finco/OneDrive/Documents/Filings/Financials/10QK/WFC/WFC_1Q24_10Q.pdf"
-# Adjust
-tables = tabula.read_pdf(pdf_path, pages=36, multiple_tables=True, stream=True)
+tables = tabula.read_pdf(pdf_path, pages=39, multiple_tables=True, stream=True) 
 
 for i, table in enumerate(tables):
     print(f"Table {i}:\n", table, "\n")
@@ -34,7 +34,6 @@ def format_numeric_columns(df):
     for col in df_formatted.select_dtypes(include='number').columns:
         df_formatted[col] = df_formatted[col].apply(lambda x: f"{int(x):,}" if pd.notnull(x) else "")
     return df_formatted
-
 
 df['Unnamed: 1'] = df['Unnamed: 1'].astype(str)
 df['Unnamed: 2'] = df['Unnamed: 2'].astype(str)
@@ -90,9 +89,9 @@ print("\n========== DataFrame 3: Total CRE Loans Outstanding ==========")
 print(format_numeric_columns(df_total))
 
 # Adjust
-df_total.to_csv("WFC_1Q24_CRE_Totals.csv", index=False)
+df_total.to_csv("WFC_2Q24_CRE_Totals.csv", index=False)
 # Adjust
-with open("Load_WFC_1Q24_CRE_Totals.py", "w") as f:
+with open("Load_WFC_2Q24_CRE_Totals.py", "w") as f:
     f.write("import pandas as pd\n\n")
     f.write("def load_data():\n")
-    f.write("    return pd.read_csv('WFC_1Q24_CRE_Totals.csv')\n") # Adjust
+    f.write("    return pd.read_csv('WFC_2Q24_CRE_Totals.csv')\n") # Adjust

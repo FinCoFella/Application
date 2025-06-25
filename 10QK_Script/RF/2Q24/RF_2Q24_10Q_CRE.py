@@ -2,7 +2,7 @@ import tabula
 import pandas as pd
 
 # Adjust
-pdf_path = "/mnt/c/Users/finco/OneDrive/Documents/Filings/Financials/10QK/RF/RF_2Q24_10Q.pdf"
+pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/RF/RF_2Q24_10Q.pdf"
 # Adjust
 tables = tabula.read_pdf(pdf_path, pages=69, multiple_tables=True, stream=True)
 

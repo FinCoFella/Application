@@ -1,7 +1,7 @@
 import tabula
 import pandas as pd
 
-pdf_path = "/mnt/c/Users/finco/OneDrive/Documents/Filings/Financials/10QK/CFG/CFG_3Q24_10Q.pdf"
+pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/CFG/CFG_3Q24_10Q.pdf"
 tables = tabula.read_pdf(pdf_path, pages=27, multiple_tables=True, stream=True)
 
 for i, table in enumerate(tables):

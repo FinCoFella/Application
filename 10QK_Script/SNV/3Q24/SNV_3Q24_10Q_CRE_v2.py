@@ -2,7 +2,7 @@ import tabula
 import pandas as pd
 
 def extract_cre_other_table():
-    pdf_path = "/mnt/c/Users/finco/OneDrive/Documents/Filings/Financials/10QK/SNV/SNV_3Q24_10Q.pdf"
+    pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/SNV/SNV_3Q24_10Q.pdf"
     tables = tabula.read_pdf(pdf_path, pages=19, multiple_tables=True, stream=True)
 
     for i, table in enumerate(tables):
