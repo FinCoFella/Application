@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 
 # Adjust
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/AVB/AVB_2Q24_10Q.pdf"
@@ -79,3 +80,17 @@ debt_buckets_df.loc[len(debt_buckets_df)] = [
 
 print("\n======================== Unsecured Debt Buckets =======================")
 print(debt_buckets_df.to_string(index=False))
+
+debt_buckets_df["Amount"] = (debt_buckets_df["Amount"].str.replace(",", "", regex=False).astype(int))
+
+debt_buckets_df = (debt_buckets_df.rename(columns={"Unsecured Debt": "Line_Item_Name", "Amount": "Value"})
+      .loc[:, ["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]])
+
+print("\n================================ SQL Format ===============================")
+print(debt_buckets_df.head())
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "AVB_2Q24_unsecured_debt.csv"
+debt_buckets_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

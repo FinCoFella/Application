@@ -19,4 +19,4 @@ engine = create_engine(connection_string)
 
 sql_df.to_sql('Financial_Line_Item', con=engine, if_exists='append', index=False)
 
-print("✅ Data successfully exported to SQL.")
+print("Data successfully exported to SQL.")

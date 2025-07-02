@@ -1,0 +1,11 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+AVB,4Q22,EBITDA,513,mn,USD,Profitability
+AVB,1Q23,EBITDA,408,mn,USD,Profitability
+AVB,2Q23,EBITDA,626,mn,USD,Profitability
+AVB,3Q23,EBITDA,441,mn,USD,Profitability
+AVB,4Q23,EBITDA,505,mn,USD,Profitability
+AVB,1Q24,EBITDA,439,mn,USD,Profitability
+AVB,2Q24,EBITDA,518,mn,USD,Profitability
+AVB,3Q24,EBITDA,641,mn,USD,Profitability
+AVB,4Q24,EBITDA,556,mn,USD,Profitability
+AVB,1Q25,EBITDA,514,mn,USD,Profitability

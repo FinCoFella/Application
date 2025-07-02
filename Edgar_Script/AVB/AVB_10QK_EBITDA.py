@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import datetime
+from pathlib import Path
 
 CIK = '0000915912' # AVB CIK Number
 
@@ -303,12 +304,40 @@ merged_quarter_df['EBITDARe'] = (
     - merged_quarter_df['Gain Loss on Sale']
 )
 
-merged_quarter_df['Ticker'] = 'AVB'
-merged_quarter_df = merged_quarter_df[['Ticker', 'Quarter', 'End Date', 'Net Income', 'Interest Expense', 'Tax Expense', 'D&A Expense', 'Gain Loss on Sale', 'EBITDARe']]
+merged_quarter_df['EBITDA'] = (
+      merged_quarter_df['Net Income']
+    + merged_quarter_df['Interest Expense']
+    + merged_quarter_df['Tax Expense']
+    + merged_quarter_df['D&A Expense']
+)
 
-int_cols = ['Net Income', 'Interest Expense', 'Tax Expense', 'D&A Expense', 'Gain Loss on Sale', 'EBITDARe']
+merged_quarter_df['Ticker'] = 'AVB'
+merged_quarter_df = merged_quarter_df[['Ticker', 'Quarter', 'End Date', 'Net Income', 'Interest Expense', 'Tax Expense', 'D&A Expense', 'Gain Loss on Sale', 'EBITDARe', 'EBITDA']]
+
+int_cols = ['Net Income', 'Interest Expense', 'Tax Expense', 'D&A Expense', 'Gain Loss on Sale', 'EBITDARe', 'EBITDA']
 merged_quarter_df[int_cols] = (merged_quarter_df[int_cols].apply(pd.to_numeric, errors='coerce').round().astype('Int64'))
 
-recent_15_entries = merged_quarter_df.tail(15)
-print("\n============================================ Merged EBITDA Table =============================================")
-print(recent_15_entries.to_string(index=False, justify='center'))
+recent_10_entries = merged_quarter_df.tail(15)
+print("\n================================================= Merged EBITDA Table ==================================================")
+print(recent_10_entries.to_string(index=False, justify='center'))
+
+recent_10_entries = merged_quarter_df.tail(10).copy()
+sql_df = (recent_10_entries.melt(id_vars = ["Ticker", "Quarter"], value_vars = ["EBITDA"], var_name="Line_Item_Name", value_name="Value"))
+
+sql_df["Unit"]     = "mn"
+sql_df["Currency"] = "USD"            
+sql_df["Category"] = "Profitability"
+
+sql_df = sql_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
+
+sql_df["Value"] = sql_df["Value"].astype(float) / 1_000_000 
+sql_df["Value"] = sql_df["Value"].round(0).astype("Int64")
+
+print("\n=============================== SQL Format ==============================")
+print(sql_df.to_string(index=False))
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "AVB_10QK_EBITDA.csv"
+sql_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

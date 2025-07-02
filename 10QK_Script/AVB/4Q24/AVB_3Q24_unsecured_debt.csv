@@ -1,0 +1,5 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+AVB,4Q24,Near-term,3300,mn,USD,Unsecured Debt
+AVB,4Q24,Medium-term,2750,mn,USD,Unsecured Debt
+AVB,4Q24,Long-term,1350,mn,USD,Unsecured Debt
+AVB,4Q24,Total Unsecured Debt,7400,mn,USD,Unsecured Debt
