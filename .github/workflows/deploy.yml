@@ -24,6 +24,9 @@ jobs:
 
       - name: Set up .env and run deploy script on VM
         uses: appleboy/ssh-action@v0.1.6
+        env:                     
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AZURE_SQL_DB:   ${{ secrets.AZURE_SQL_DB }}
         with:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
