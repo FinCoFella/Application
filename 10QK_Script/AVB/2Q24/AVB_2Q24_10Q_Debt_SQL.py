@@ -1,7 +1,14 @@
+from sqlalchemy import create_engine
 from pathlib import Path
 import pandas as pd
 import urllib
-from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv 
+
+load_dotenv()
+
+SQL_USER = os.getenv("SQL_USER")
+SQL_PASS = os.getenv("SQL_PASS")
 
 sql_df = pd.read_csv(Path(__file__).with_name("AVB_2Q24_unsecured_debt.csv"))
 
@@ -9,8 +16,8 @@ odbc = (
     "DRIVER=ODBC Driver 17 for SQL Server;"
     "SERVER=172.24.112.1,1433;"
     "DATABASE=US_REITs;"
-    "UID=FinCoFella;"
-    "PWD=ND24ICL;"
+    f"UID={SQL_USER};"
+    f"PWD={SQL_PASS};"
     "TrustServerCertificate=Yes;"
 )
 
