@@ -135,7 +135,7 @@
     </form>
 
     {% if ticker and rows is not none and rows|length == 0 %}
-        <p class="error">No data found for “{{ ticker }}”.</p>
+        <p class="error"> No data found for “{{ ticker }}”. </p>
     {% endif %}
 
     {% if rows %}
@@ -168,5 +168,25 @@
         </table>
     </div>
     {% endif %}
+
+{% if ratio_png %}
+    <div style="text-align:center;margin:30px 0">
+        <button id="ratioBtn" class="ticker-button">
+            Total Unsecured Debt-to-EBITDA
+        </button>
+    </div>
+
+    <div id="ratioBox"
+         style="display:none;text-align:center;margin:0 0 40px 0">
+        <img src="data:image/png;base64,{{ ratio_png }}"
+             alt="Total Unsecured Debt divided by EBITDA">
+    </div>
+
+    <script>
+        document.getElementById("ratioBtn").addEventListener("click", () => {
+            document.getElementById("ratioBox").style.display = "block";
+        });
+    </script>
+{% endif %}
 </body>
 </html>
