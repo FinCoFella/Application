@@ -9,22 +9,21 @@ import pandas as pd
 
 load_dotenv()
 
-SQL_USER = os.getenv("SQL_USER")
-SQL_PASS = os.getenv("SQL_PASS")
+server = os.getenv("SQL_SERVER")
+db = os.getenv("SQL_DATABASE")
+user = os.getenv("SQL_USER")
+pwd = os.getenv("SQL_PASS")
+driver = os.getenv("SQL_DRIVER", "ODBC Driver 18 for SQL Server")
 
 odbc_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=172.24.112.1,1433;"
-    "DATABASE=US_REITs;"
-    f"UID={SQL_USER};"
-    f"PWD={SQL_PASS};"
-    "TrustServerCertificate=Yes;"
+    f"DRIVER={{{driver}}};"
+    f"SERVER=tcp:{server},1433;"
+    f"DATABASE={db};"
+    f"UID={user};PWD={pwd};"
+    "Encrypt=yes;TrustServerCertificate=no;"
 )
 
-connection_uri = (
-    "mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_str)
-)
-
+connection_uri = "mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_str)
 engine = create_engine(connection_uri, fast_executemany=True)
 
 ############## Helper Functions ##############
