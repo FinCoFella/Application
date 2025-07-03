@@ -32,9 +32,7 @@ jobs:
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           
-          envs: |
-            OPENAI_API_KEY
-            AZURE_SQL_DB
+          envs: "OPENAI_API_KEY,AZURE_SQL_DB"
           
           script: |
             cd /home/${{ secrets.AZURE_VM_USER }}/app
