@@ -24,13 +24,29 @@ jobs:
 
       - name: Set up .env and run deploy script on VM
         uses: appleboy/ssh-action@v0.1.6
+        env:               
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AZURE_SQL_DB:   ${{ secrets.AZURE_SQL_DB }}
         with:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           script: |
             cd /home/${{ secrets.AZURE_VM_USER }}/app
-            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
-            chmod +x deploy.sh
-            ./deploy.sh
+
+            touch .env
+
+            update_env () {
+              KEY="$1"; VALUE="$2"
+              grep -q "^${KEY}=" .env 2>/dev/null \
+              && sed -i "s|^${KEY}=.*|${KEY}=\"${VALUE}\"|" .env \
+              || echo "${KEY}=\"${VALUE}\"" >> .env
+            }
+
+            update_env OPENAI_API_KEY "$OPENAI_API_KEY"
+            update_env AZURE_SQL_DB   "$AZURE_SQL_DB"
+
+            chmod 600 .env
+
+            sudo systemctl restart fincofella.service
 

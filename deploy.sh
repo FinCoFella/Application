@@ -12,12 +12,7 @@ source $VENV_DIR/bin/activate
 echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
-echo "🚀 Restarting Flask app..."
-
-# Kill previous process (if running)
-pkill -f "python3 app.py"
-
-# Start app in background
-nohup python3 app.py > flask.log 2>&1 &
+echo "🚀  Restarting Gunicorn via systemd..."
+sudo systemctl restart fincofella.service
 
 echo "✅ Deployment complete."
