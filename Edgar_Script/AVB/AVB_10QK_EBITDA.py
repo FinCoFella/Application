@@ -264,27 +264,21 @@ print("\n=========================== Gain/Loss on Sale Table ===================
 print(gain_loss_sale_df.tail(15))
 
 # ========== Merged Table ========== #
-# Drop duplicates (most recent by File Date already ensured earlier)
 net_income_df = net_income_df.sort_values(by=['Quarter', 'End Date', 'File Date'], ascending=[True, False, False])
 net_income_df = net_income_df.drop_duplicates(subset=['Quarter'], keep='first')
 
-# Prefer the most recent Interest Expense by End Date and File Date
 interest_exp_df = interest_exp_df.sort_values(by=['Quarter', 'End Date', 'File Date'], ascending=[True, False, False])
 interest_exp_df = interest_exp_df.drop_duplicates(subset=['Quarter'], keep='first')
 
-# Prefer the most recent Tax Expense by End Date and File Date
 tax_exp_df = tax_exp_df.sort_values(by=['Quarter', 'End Date', 'File Date'], ascending=[True, False, False])
 tax_exp_df = tax_exp_df.drop_duplicates(subset=['Quarter'], keep='first')
 
-# Prefer the most recent Depreciation & Amortization Expense by End Date and File Date
 dep_amort_exp_df = dep_amort_exp_df.sort_values(by=['Quarter', 'End Date', 'File Date'], ascending=[True, False, False])
 dep_amort_exp_df = dep_amort_exp_df.drop_duplicates(subset=['Quarter'], keep='first')
 
-# Prefer the most recent Gain/Loss on Sale by End Date and File Date
 gain_loss_sale_df = gain_loss_sale_df.sort_values(by=['Quarter', 'End Date', 'File Date'], ascending=[True, False, False])
 gain_loss_sale_df = gain_loss_sale_df.drop_duplicates(subset=['Quarter'], keep='first')
 
-# Merge and sort by End Date
 merged_quarter_df = (
     net_income_df[['Quarter','End Date','Net Income']]
         .merge(interest_exp_df[['Quarter','Interest Expense']], on='Quarter', how='left')
@@ -333,7 +327,7 @@ sql_df = sql_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Curren
 sql_df["Value"] = sql_df["Value"].astype(float) / 1_000_000 
 sql_df["Value"] = sql_df["Value"].round(0).astype("Int64")
 
-print("\n=============================== SQL Format ==============================")
+print("\n====================== SQL Database Format =====================")
 print(sql_df.to_string(index=False))
 
 SCRIPT_DIR = Path(__file__).resolve().parent

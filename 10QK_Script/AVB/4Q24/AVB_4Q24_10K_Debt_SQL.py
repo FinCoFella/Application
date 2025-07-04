@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQL_USER = os.getenv("SQL_USER")
-SQL_PASS = os.getenv("SQL_PASS")
+SQL_SSMS_USER = os.getenv("SQL_SSMS_USER")
+SQL_SSMS_PASS = os.getenv("SQL_SSMS_PASS")
 
 sql_df = pd.read_csv(Path(__file__).with_name("AVB_3Q24_unsecured_debt.csv"))
 
@@ -16,8 +16,8 @@ odbc = (
     "DRIVER=ODBC Driver 17 for SQL Server;"
     "SERVER=172.24.112.1,1433;"
     "DATABASE=US_REITs;"
-    f"UID={SQL_USER};"
-    f"PWD={SQL_PASS};"
+    f"UID={SQL_SSMS_USER};"
+    f"PWD={SQL_SSMS_PASS};"
     "TrustServerCertificate=Yes;"
 )
 
