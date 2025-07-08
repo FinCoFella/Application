@@ -104,6 +104,7 @@ rename_map = {
     'Industrial/warehouse': 'Industrial',
     'Institutional': 'Other',
     'Mixed use properties': 'Mixed-use',
+    'Mobile home park': 'Other',
     'Storage facility': 'Other'
 }
 

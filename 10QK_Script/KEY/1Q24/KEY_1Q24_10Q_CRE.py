@@ -61,6 +61,7 @@ consolidation_map = {
     "Land & Residential": "Other",
     "Medical Office": "Office",
     "Self Storage": "Other",
+    "Multifamily": "Multi-family",
     "Senior Housing": "Other",
     "Skilled Nursing": "Other",
     "Student Housing": "Other"

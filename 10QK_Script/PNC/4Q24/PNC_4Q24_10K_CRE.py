@@ -30,6 +30,7 @@ property_df["Loan Amount"] = property_df["Loan Amount"].str.replace(",", "").ast
 row_rename_map = {
   "Industrial/warehouse": "Industrial",
   "Hotel/motel": "Lodging",
+  "Multifamily": "Multi-family",
   "Mixed use": "Mixed-use",
 }
 

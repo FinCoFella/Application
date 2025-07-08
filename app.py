@@ -81,7 +81,7 @@ def pie_chart(df: pd.DataFrame) -> str:
 
     colors = [
         "#003f5c", "#29487d", "#87bdd8", "#AEDEF4", "#012F42",
-        "#75E1F2", "#3B6565", "#409ac7", "#0f9a93", "#20989c"
+        "#75E1F2", "#3B6565", "#409ac7", "#0f9a93", "#59C9BA"
     ]
 
     color_cycle = (colors * ((len(df) // len(colors)) + 1))[:len(df)]
