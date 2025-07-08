@@ -81,7 +81,7 @@ def pie_chart(df: pd.DataFrame) -> str:
 
     colors = [
         "#003f5c", "#29487d", "#87bdd8", "#AEDEF4", "#012F42",
-        "#75E1F2", "#3B6565", "#409ac7", "#0f9a93", "#59C9BA"
+        "#51A0AC", "#3B6565", "#409ac7", "#0f9a93", "#59C9BA"
     ]
 
     color_cycle = (colors * ((len(df) // len(colors)) + 1))[:len(df)]
@@ -89,7 +89,7 @@ def pie_chart(df: pd.DataFrame) -> str:
     values = df["Value"]
     raw_labels = df["Line_Item_Name"]
     percentages = values / total_cre_value * 100
-    labels = [f"{label} - {pct:.1f}%" for label, pct in zip(raw_labels, percentages)]
+    labels = [f"{label}, {pct:.1f}%" for label, pct in zip(raw_labels, percentages)]
 
     ax.pie(values, labels=labels, startangle=140, colors=color_cycle)
     ax.set_title("CRE Loan Portfolio Distribution")
