@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 
 # Adjust
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/JPM/JPM_2024_10K.pdf"
@@ -94,15 +95,15 @@ remaining_rows = cre_final_df[
 
 cre_final_df = pd.concat([remaining_rows, other_row, total_row], ignore_index=True)
 
+cre_final_df["Value"] = cre_final_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+cre_final_df = cre_final_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
+cre_final_df = cre_final_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
 
-print("\n=========================== SQL DataFrame ===========================")
-print(cre_final_df,"\n")
+print("\n========================= SQL Format =========================")
+print(cre_final_df)
 
-sql_df = cre_final_df.copy()
-sql_df['Loan Amount'] = sql_df['Loan Amount'].str.replace(',', '').astype(int)
-sql_df.rename(columns={
-    "CRE Property Type": "Line_Item_Name",
-    "Loan Amount": "Value"
-}, inplace=True)
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "JPM_4Q24_cre.csv"
+cre_final_df.to_csv(CSV, index=False)
 
-sql_df.to_csv("cre_loan_data.csv", index=False)
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

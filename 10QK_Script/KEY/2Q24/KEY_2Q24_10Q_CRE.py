@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 
 # Adjust
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/KEY/KEY_2Q24_10Q.pdf"
@@ -79,11 +80,15 @@ cre_final_df["Loan Amount"] = cre_final_df["Loan Amount"].apply(lambda x: f"{int
 print("\n=========================== SQL DataFrame ============================")
 print(cre_final_df,"\n")
 
-sql_df = cre_final_df.copy()
-sql_df['Loan Amount'] = sql_df['Loan Amount'].str.replace(',', '').astype(int)
-sql_df.rename(columns={
-    "CRE Property Type": "Line_Item_Name",
-    "Loan Amount": "Value"
-}, inplace=True)
+cre_final_df["Value"] = cre_final_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+cre_final_df = cre_final_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
+cre_final_df = cre_final_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
 
-sql_df.to_csv("cre_loan_data.csv", index=False)
+print("\n========================= SQL Format ========================")
+print(cre_final_df)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "KEY_2Q24_cre.csv"
+cre_final_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

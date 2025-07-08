@@ -1,22 +1,32 @@
-import pandas as pd
 from sqlalchemy import create_engine
+from pathlib import Path
+import pandas as pd
+import urllib
+import os
+from dotenv import load_dotenv 
 
-sql_df = pd.read_csv("cre_loan_data.csv")
+load_dotenv()
 
-server = '10.82.193.77'
-port = '1433'
-database = 'US_Banks'
-username = 'FinCoFella'
-password = 'ND24ICL'
-driver = 'ODBC Driver 17 for SQL Server'
+SQL_SSMS_USER = os.getenv("SQL_SSMS_USER")
+SQL_SSMS_PASS = os.getenv("SQL_SSMS_PASS")
 
-connection_string = (
-    f"mssql+pyodbc://{username}:{password}@{server},{port}/{database}"
-    f"?driver={driver.replace(' ', '+')}"
+sql_df = pd.read_csv(Path(__file__).with_name("JPM_2Q24_cre.csv"))
+
+odbc = (
+    "DRIVER=ODBC Driver 17 for SQL Server;"
+    "SERVER=172.24.112.1,1433;"
+    "DATABASE=US_Banks;"
+    f"UID={SQL_SSMS_USER};"
+    f"PWD={SQL_SSMS_PASS};"
+    "TrustServerCertificate=Yes;"
 )
 
-engine = create_engine(connection_string)
+engine = create_engine(
+    f"mssql+pyodbc:///?odbc_connect={urllib.parse.quote_plus(odbc)}",
+    fast_executemany=True
+)
 
-sql_df.to_sql('Financial_Line_Item', con=engine, if_exists='append', index=False)
+sql_df.to_sql("Financial_Line_Item", engine, schema="dbo",
+          if_exists="append", index=False, method="multi")
 
-print("✅ Data successfully exported to SQL.")
+print("Data successfully exported to SQL.")

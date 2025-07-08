@@ -1,6 +1,7 @@
 from SNV_2Q24_10Q_CRE_v1 import extract_cre_main_table
 from SNV_2Q24_10Q_CRE_v2 import extract_cre_other_table
 import pandas as pd
+from pathlib import Path
 
 df1 = extract_cre_main_table()
 df2 = extract_cre_other_table()
@@ -44,8 +45,15 @@ final_df["Loan Amount"] = final_df["Loan Amount"].apply(lambda x: f"{int(round(x
 print("\n=============== Merged CRE 2Q24 Loan Portfolio Table ================")
 print(final_df, "\n")
 
-sql_df = final_df.copy()
-sql_df['Loan Amount'] = sql_df['Loan Amount'].str.replace(',', '').astype(float).round(0).astype(int)
-sql_df.rename(columns={"CRE Property Type": "Line_Item_Name", "Loan Amount": "Value"}, inplace=True)
-sql_df.to_csv("cre_loan_data_merged.csv", index=False)
-combined_cre_df.to_csv("cre_loan_data_merged.csv", index=False)
+final_df["Value"] = final_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+final_df = final_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
+final_df = final_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
+
+print("\n========================= SQL Format ========================")
+print(final_df)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "SNV_2Q24_cre.csv"
+final_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/CFG/CFG_3Q24_10Q.pdf"
 tables = tabula.read_pdf(pdf_path, pages=27, multiple_tables=True, stream=True)
@@ -79,11 +80,15 @@ property_df["Loan Amount"] = property_df["Loan Amount"].apply(lambda x: f"{int(x
 print("\n============== Extracted CRE 3Q24 Loan Portfolio Table ===============")
 print(property_df)
 
-sql_df = property_df.copy()
-sql_df['Loan Amount'] = sql_df['Loan Amount'].str.replace(',', '').astype(int)
-sql_df.rename(columns={
-    "CRE Property Type": "Line_Item_Name",
-    "Loan Amount": "Value"
-}, inplace=True)
+property_df["Value"] = property_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+property_df = property_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
+property_df = property_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
 
-sql_df.to_csv("cre_loan_data.csv", index=False)
+print("\n========================= SQL Format ========================")
+print(property_df)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "CFG_3Q24_cre.csv"
+property_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

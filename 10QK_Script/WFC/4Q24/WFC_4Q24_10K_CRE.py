@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 
 # Adjust
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/WFC/WFC_2024_10K.pdf"
@@ -83,14 +84,72 @@ df_total['Total CRE Loans Outstanding'] = (
 
 df_total = df_total[['Unnamed: 0', 'Total CRE Loans Outstanding']]
 df_total.rename(columns={'Unnamed: 0': 'Property Type'}, inplace=True)
+df_total = df_total.loc[lambda d: ~d['Property Type'].isin(['By property:', 'Total'])].reset_index(drop=True)
 df_total = df_total[df_total['Property Type'] != 'By property:']
 
 print("\n========== DataFrame 3: Total CRE Loans Outstanding ==========")
 print(format_numeric_columns(df_total))
-# Adjust
-df_total.to_csv("WFC_4Q24_CRE_Totals.csv", index=False)
-# Adjust
-with open("Load_WFC_4Q24_CRE_Totals.py", "w") as f:
-    f.write("import pandas as pd\n\n")
-    f.write("def load_data():\n")
-    f.write("    return pd.read_csv('WFC_4Q24_CRE_Totals.csv')\n") # Adjust
+
+df_cre_final = df_total.copy()
+df_cre_final['Total CRE Loans Outstanding'] = df_cre_final['Total CRE Loans Outstanding'].apply(
+    lambda x: f"{int(x):,}" if pd.notnull(x) else ""
+)
+
+df_cre_final = df_cre_final[~df_cre_final['Property Type'].isin(['By property:', 'Total'])].reset_index(drop=True)
+
+rename_map = {
+    '1-4 family structure': 'Residential',
+    'Apartments': 'Multi-family',
+    'Hotel/motel': 'Lodging',
+    'Industrial/warehouse': 'Industrial',
+    'Institutional': 'Other',
+    'Mixed use properties': 'Mixed-use',
+    'Storage facility': 'Other'
+}
+
+df_cre_final['Property Type'] = df_cre_final['Property Type'].replace(rename_map)
+df_cre_final['Total CRE Loans Outstanding'] = df_cre_final['Total CRE Loans Outstanding'].replace(r'[\$,]', '', regex=True).astype(float)
+
+df_cre_final['Property Type'] = df_cre_final['Property Type'].replace({
+    'Retail (excl shopping center)': 'Retail',
+    'Shopping center': 'Retail'
+})
+
+df_cre_final = df_cre_final.groupby('Property Type', as_index=False)['Total CRE Loans Outstanding'].sum()
+
+df_cre_final['Total CRE Loans Outstanding'] = df_cre_final['Total CRE Loans Outstanding'].apply(lambda x: f"{int(x):,}")
+
+total = df_total['Total CRE Loans Outstanding'].replace('[,]', '', regex=True).astype(int).sum()
+df_cre_final.loc[len(df_cre_final.index)] = ['Total CRE', f"{total:,}"]
+
+df_cre_final.rename(columns={
+    "Property Type": "CRE Property Type",
+    "Total CRE Loans Outstanding": "Loan Amount"
+}, inplace=True)
+
+df_cre_final["Ticker"] = "WFC"
+df_cre_final["Quarter"] = "4Q24"
+df_cre_final["Unit"] = "mn"
+df_cre_final["Currency"] = "USD"
+df_cre_final["Category"] = "CRE"
+
+column_order = ["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Unit", "Currency", "Category"]
+df_cre_final = df_cre_final[column_order]
+
+print("\n====================== Standardized CRE Table =======================")
+print(df_cre_final)
+
+df_cre_final["Value"] = df_cre_final["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+df_cre_final = df_cre_final.rename(columns={"CRE Property Type": "Line_Item_Name"})
+df_cre_final = df_cre_final[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
+
+print("\n=========================== SQL Format ==========================")
+print(df_cre_final)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "WFC_4Q24_cre.csv"
+df_cre_final.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")
+
+

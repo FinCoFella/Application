@@ -1,5 +1,6 @@
 import tabula
 import pandas as pd
+from pathlib import Path
 import re
 
 # Adjust
@@ -69,11 +70,15 @@ property_df["Loan Amount"] = property_df["Loan Amount"].apply(
 print("\n============== Extracted CRE 1Q24 Loan Portfolio Table ===============")
 print(property_df, "\n")
 
-sql_df = property_df.copy()
-sql_df['Loan Amount'] = sql_df['Loan Amount'].str.replace(',', '', regex=False).replace('', pd.NA).dropna().astype(int)
-sql_df.rename(columns={
-    "CRE Property Type": "Line_Item_Name",
-    "Loan Amount": "Value"
-}, inplace=True)
+property_df["Value"] = property_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+property_df = property_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
+property_df = property_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
 
-sql_df.to_csv("cre_loan_data.csv", index=False)
+print("\n========================= SQL Format ========================")
+print(property_df)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "HBAN_1Q24_cre.csv"
+property_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")
