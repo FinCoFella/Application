@@ -71,29 +71,27 @@ def pie_chart(df: pd.DataFrame) -> str:
     df = df[df["Value"] > 0].copy()
     total_cre_row = df[df["Line_Item_Name"] == "Total CRE"]
 
+    if total_cre_row.empty:
+        plt.close(fig)
+        return ""
+
     total_cre_value = total_cre_row["Value"].values[0]
     df = df[df["Line_Item_Name"] != "Total CRE"].copy()
     df = df.sort_values(by="Value", ascending=False)
 
     colors = [
         "#003f5c", "#29487d", "#87bdd8", "#AEDEF4", "#012F42",
-        "#75E1F2", "#3B6565", "#409ac7", "#14cfc5", "#20989c"
+        "#75E1F2", "#3B6565", "#409ac7", "#0f9a93", "#20989c"
     ]
 
     color_cycle = (colors * ((len(df) // len(colors)) + 1))[:len(df)]
 
     values = df["Value"]
-    labels = df["Line_Item_Name"]
+    raw_labels = df["Line_Item_Name"]
     percentages = values / total_cre_value * 100
-    autopcts = [f"{pct:.1f}%" for pct in percentages]
+    labels = [f"{label} - {pct:.1f}%" for label, pct in zip(raw_labels, percentages)]
 
-    def make_autopct(pcts):
-        def inner_autopct(pct):
-            idx = int(round(pct * len(pcts) / 100.0))
-            return autopcts[idx] if idx < len(pcts) else ""
-        return inner_autopct
-
-    ax.pie(values, labels=labels, startangle=140, colors=color_cycle,autopct=make_autopct(percentages))
+    ax.pie(values, labels=labels, startangle=140, colors=color_cycle)
     ax.set_title("CRE Loan Portfolio Distribution")
     fig.tight_layout()
 
