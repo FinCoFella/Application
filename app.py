@@ -9,13 +9,15 @@ import pandas as pd
 
 load_dotenv()
 
-odbc = os.getenv("AZURE_SQL_DB") 
-connection_uri = "mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc)
-engine = create_engine(connection_uri, fast_executemany=True)
+odbc_reits = os.getenv("AZURE_SQL_DB_REITS")
+odbc_banks = os.getenv("AZURE_SQL_DB_BANKS")
+
+engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
+engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
 
 ############## Helper Functions ##############
 
-def load_rows_by_ticker(ticker: str) -> pd.DataFrame:
+def load_rows_by_ticker(ticker: str, engine) -> pd.DataFrame:
 
     sql = text("""
         SELECT  Ticker,
@@ -63,6 +65,18 @@ def chart_png(ratio_df: pd.DataFrame) -> str:
     plt.close(fig)
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
+def pie_chart(df: pd.DataFrame) -> str:
+    fig, ax = plt.subplots(figsize=(6, 6))
+    df = df[df["Value"] > 0].copy()
+    ax.pie(df["Value"], labels=df["Line_Item_Name"], autopct="%1.1f%%", startangle=140)
+    ax.set_title("Line Item Breakdown")
+    fig.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=120)
+    plt.close(fig)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
+
 ############## Flask App Endpoints ##############
 
 app = Flask(__name__)
@@ -78,13 +92,46 @@ def reits():
     ratio_png = ""
 
     if ticker:
-        df = load_rows_by_ticker(ticker)
+        df = load_rows_by_ticker(ticker, engine_reits)
         rows = df.to_dict("records") if not df.empty else []
 
         ratio_df = unsecured_debt_to_ebitda(df)
         ratio_png = chart_png(ratio_df)
 
     return render_template("reits.html", ticker=ticker, rows=rows, ratio_png=ratio_png)
+
+@app.route("/banks")
+def banks():                         
+    ticker = request.args.get("ticker", "").strip().upper()
+    quarter = request.args.get("quarter", "").strip()
+    action = request.args.get("action", "")
+
+    rows = None
+    pie_png = ""
+
+    if ticker and quarter:
+        sql = text("""
+            SELECT  Ticker,
+                    Quarter,
+                    Line_Item_Name,
+                    Value,
+                    Unit,
+                    Currency,
+                    Category
+            FROM    dbo.Financial_Line_Item
+            WHERE   Ticker = :ticker AND Quarter = :quarter
+            ORDER BY Line_Item_Name
+        """)
+    
+        with engine_banks.begin() as conn:
+            df = pd.read_sql(sql, conn, params={"ticker": ticker, "quarter": quarter})
+
+        rows = df.to_dict("records") if not df.empty else []
+
+        if action == "pie" and not df.empty:
+            pie_png = pie_chart(df)
+
+    return render_template("banks.html", ticker=ticker, quarter=quarter, rows=rows, pie_png=pie_png)
 
 if __name__ == '__main__':
     app.run(debug=True)

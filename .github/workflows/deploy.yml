@@ -26,13 +26,14 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         env:                     
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          AZURE_SQL_DB:   ${{ secrets.AZURE_SQL_DB }}
+          AZURE_SQL_DB_REITS:   ${{ secrets.AZURE_SQL_DB_REITS }}
+          AZURE_SQL_DB_BANKS:   ${{ secrets.AZURE_SQL_DB_BANKS }}
         with:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           
-          envs: "OPENAI_API_KEY,AZURE_SQL_DB"
+          envs: "OPENAI_API_KEY,AZURE_SQL_DB_REITS,AZURE_SQL_DB_BANKS"
           
           script: |
             cd /home/${{ secrets.AZURE_VM_USER }}/app
@@ -46,7 +47,8 @@ jobs:
             }
 
             update_env OPENAI_API_KEY "$OPENAI_API_KEY"
-            update_env AZURE_SQL_DB   "$AZURE_SQL_DB"
+            update_env AZURE_SQL_DB_REITS   "$AZURE_SQL_DB_REITS"
+            update_env AZURE_SQL_DB_BANKS   "$AZURE_SQL_DB_BANKS"
 
             chmod 600 .env
 

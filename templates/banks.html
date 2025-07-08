@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>U.S. Banks</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
+
+        .navbar{
+            background:#fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow:0 4px 6px rgba(0,0,0,.1)
+        }
+        .navdiv{
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        ul{
+            margin:0;
+            padding:0
+        }
+        li{
+            list-style: none;
+            display: inline-block;
+            position: relative
+        }
+        li a{
+            font-family: 'Questrial', sans-serif;
+            color:#00aeef;
+            font-size: 18px;
+            margin-right: 20px;
+            text-decoration: none;
+            line-height: 1.2;
+            padding: 5px 0}
+        li a:hover{
+            color:#00395d
+        }
+        .dropdown{
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background:#00aeef;
+            min-width: 150px;
+            border-radius:5px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,.1)
+        }
+        .dropdown li{
+            display: block;
+            margin: 0
+        }
+        .dropdown li a{
+            color:#fff;
+            font-size: 14px;
+            padding: 8px 15px;
+            display: block
+        }
+        .dropdown li a:hover{
+            background:#00395d;
+            color:#fff
+        }
+        li:hover .dropdown{
+            display:block
+        }
+
+        table{
+            border-collapse: collapse; 
+            width: 95%; 
+            margin: 30px auto;
+            font-family: 'Questrial', sans-serif
+        }
+        th,td{ 
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center
+        }
+        th{
+            background:#00aeef;
+            color:#fff
+        }
+        tr:nth-child(even){
+            background:#f1f9ff
+        }
+        tr:hover{
+            background:#e1f3ff
+        }
+        .ticker-form{
+            margin: 40px auto;
+            text-align: center
+        }
+        .ticker-input{
+            width: 120px;
+            padding: 6px 10px;
+            border: 1px solid #00aeef;
+            border-radius: 4px;
+            font-family: 'Questrial', sans-serif
+        }
+        .ticker-button{
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            background:#00aeef;
+            color:#fff;
+            font-family: 'Questrial', sans-serif;
+            cursor:pointer
+        }
+        .ticker-button:hover{
+            background:#00395d
+        }
+        .error{
+            color:#d00;
+            margin-top: 20px;
+            font-family:'Questrial', sans-serif
+        }
+    </style>
+</head>
+
+<body style="background:#fff;">
+    <nav class="navbar">
+        <div class="navdiv">
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('banks') }}">U.S. Banks</a></li>
+                <li><a href="{{ url_for('reits') }}">U.S. REITs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <form class="ticker-form" action="{{ url_for('banks') }}" method="get">
+        <input class="ticker-input" name="ticker" placeholder="Enter ticker" value="{{ ticker }}">
+        <input class="ticker-input" name="quarter" placeholder="Enter quarter (e.g. Q1 2024)" value="{{ quarter }}">
+        <button class="ticker-button" style="margin-right: 10px;" type="submit" name="action" value="data">Ticker Data</button>
+        <button class="ticker-button" type="submit" name="action" value="pie">Generate Pie Chart</button>
+    </form>
+
+    {% if ticker and rows is not none and rows|length == 0 %}
+        <p class="error"> No data found for “{{ ticker }}”. </p>
+    {% endif %}
+
+    {% if rows %}
+    <div style="overflow-x:auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Quarter</th>
+                    <th>Line&nbsp;Item&nbsp;Name</th>
+                    <th>Value</th>
+                    <th>Unit</th>
+                    <th>Currency</th>
+                    <th>Category</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td>{{ r.Ticker }}</td>
+                    <td>{{ r.Quarter }}</td>
+                    <td>{{ r.Line_Item_Name }}</td>
+                    <td>{{ "{:,}".format(r.Value) }}</td>
+                    <td>{{ r.Unit }}</td>
+                    <td>{{ r.Currency }}</td>
+                    <td>{{ r.Category }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if pie_png %}
+        <div style="text-align:center;margin:30px 0">
+            <img src="data:image/png;base64,{{ pie_png }}" alt="Line Item Breakdown Pie Chart">
+        </div>
+    {% endif %}
+</body>
+</html>
