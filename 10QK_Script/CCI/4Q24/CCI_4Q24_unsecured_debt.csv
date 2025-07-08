@@ -1,0 +1,5 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+CCI,4Q24,Near-term,11515,mn,USD,Unsecured Debt
+CCI,4Q24,Medium-term,4313,mn,USD,Unsecured Debt
+CCI,4Q24,Long-term,6475,mn,USD,Unsecured Debt
+CCI,4Q24,Total Unsecured Debt,22303,mn,USD,Unsecured Debt

@@ -1,0 +1,9 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+SNV,2Q24,Industrial,865,mn,USD,CRE
+SNV,2Q24,Lodging,1802,mn,USD,CRE
+SNV,2Q24,Multi-family,4288,mn,USD,CRE
+SNV,2Q24,Office,1802,mn,USD,CRE
+SNV,2Q24,Other,1606,mn,USD,CRE
+SNV,2Q24,Residential,553,mn,USD,CRE
+SNV,2Q24,Retail,1299,mn,USD,CRE
+SNV,2Q24,Total CRE,12215,mn,USD,CRE

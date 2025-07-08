@@ -1,0 +1,9 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+PNC,3Q24,Multi-family,16678,mn,USD,CRE
+PNC,3Q24,Office,7225,mn,USD,CRE
+PNC,3Q24,Industrial,3990,mn,USD,CRE
+PNC,3Q24,Retail,2174,mn,USD,CRE
+PNC,3Q24,Lodging,1696,mn,USD,CRE
+PNC,3Q24,Mixed-use,348,mn,USD,CRE
+PNC,3Q24,Other,2993,mn,USD,CRE
+PNC,3Q24,Total CRE,35104,mn,USD,CRE

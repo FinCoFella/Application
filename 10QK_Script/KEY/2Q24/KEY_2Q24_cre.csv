@@ -1,0 +1,8 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+KEY,2Q24,Industrial,779,mn,USD,CRE
+KEY,2Q24,Lodging,214,mn,USD,CRE
+KEY,2Q24,Multi-family,8576,mn,USD,CRE
+KEY,2Q24,Office,1048,mn,USD,CRE
+KEY,2Q24,Other,2196,mn,USD,CRE
+KEY,2Q24,Retail,902,mn,USD,CRE
+KEY,2Q24,Total CRE,13715,mn,USD,CRE

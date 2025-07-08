@@ -1,0 +1,5 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+AMT,4Q24,Near-term,18777,mn,USD,Unsecured Debt
+AMT,4Q24,Medium-term,10001,mn,USD,Unsecured Debt
+AMT,4Q24,Long-term,4398,mn,USD,Unsecured Debt
+AMT,4Q24,Total Unsecured Debt,33177,mn,USD,Unsecured Debt

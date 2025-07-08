@@ -1,0 +1,8 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+HBAN,3Q24,Multi-family,4524,mn,USD,CRE
+HBAN,3Q24,Industrial,1954,mn,USD,CRE
+HBAN,3Q24,Office,1601,mn,USD,CRE
+HBAN,3Q24,Retail,1580,mn,USD,CRE
+HBAN,3Q24,Lodging,853,mn,USD,CRE
+HBAN,3Q24,Other,1031,mn,USD,CRE
+HBAN,3Q24,Total CRE,11543,mn,USD,CRE

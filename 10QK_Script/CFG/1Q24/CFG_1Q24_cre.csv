@@ -1,0 +1,8 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+CFG,1Q24,Multi-family,9491,mn,USD,CRE
+CFG,1Q24,Retail,3376,mn,USD,CRE
+CFG,1Q24,Industrial,4079,mn,USD,CRE
+CFG,1Q24,Lodging,552,mn,USD,CRE
+CFG,1Q24,Office,5708,mn,USD,CRE
+CFG,1Q24,Other,5666,mn,USD,CRE
+CFG,1Q24,Total CRE,28872,mn,USD,CRE

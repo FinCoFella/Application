@@ -1,0 +1,8 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+JPM,4Q24,Multi-family,114155,mn,USD,CRE
+JPM,4Q24,Industrial,13758,mn,USD,CRE
+JPM,4Q24,Office,13252,mn,USD,CRE
+JPM,4Q24,Retail,9190,mn,USD,CRE
+JPM,4Q24,Lodging,2424,mn,USD,CRE
+JPM,4Q24,Other,16926,mn,USD,CRE
+JPM,4Q24,Total CRE,169705,mn,USD,CRE

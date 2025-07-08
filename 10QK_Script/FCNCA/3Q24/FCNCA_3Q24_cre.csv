@@ -1,0 +1,8 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+FCNCA,3Q24,Multi-family,5715,mn,USD,CRE
+FCNCA,3Q24,Industrial,3544,mn,USD,CRE
+FCNCA,3Q24,Retail,1959,mn,USD,CRE
+FCNCA,3Q24,Lodging,860,mn,USD,CRE
+FCNCA,3Q24,Other,4371,mn,USD,CRE
+FCNCA,3Q24,Office,6240,mn,USD,CRE
+FCNCA,3Q24,Total CRE,22689,mn,USD,CRE
