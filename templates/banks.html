@@ -130,9 +130,9 @@
 
     <form class="ticker-form" action="{{ url_for('banks') }}" method="get">
         <input class="ticker-input" name="ticker" placeholder="Enter ticker" value="{{ ticker }}">
-        <input class="ticker-input" name="quarter" placeholder="Enter quarter (e.g. Q1 2024)" value="{{ quarter }}">
+        <input class="ticker-input" name="quarter" placeholder="Quarter (e.g. 3Q24)" value="{{ quarter }}">
         <button class="ticker-button" style="margin-right: 10px;" type="submit" name="action" value="data">Ticker Data</button>
-        <button class="ticker-button" type="submit" name="action" value="pie">Generate Pie Chart</button>
+        <button class="ticker-button" type="submit" name="action" value="pie">Pie Chart</button>
     </form>
 
     {% if ticker and rows is not none and rows|length == 0 %}
@@ -172,7 +172,7 @@
 
     {% if pie_png %}
         <div style="text-align:center;margin:30px 0">
-            <img src="data:image/png;base64,{{ pie_png }}" alt="Line Item Breakdown Pie Chart">
+            <img src="data:image/png;base64,{{ pie_png }}" alt="CRE Property Types">
         </div>
     {% endif %}
 </body>

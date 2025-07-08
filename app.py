@@ -68,8 +68,16 @@ def chart_png(ratio_df: pd.DataFrame) -> str:
 def pie_chart(df: pd.DataFrame) -> str:
     fig, ax = plt.subplots(figsize=(6, 6))
     df = df[df["Value"] > 0].copy()
-    ax.pie(df["Value"], labels=df["Line_Item_Name"], autopct="%1.1f%%", startangle=140)
-    ax.set_title("Line Item Breakdown")
+
+    colors = [
+        "#003f5c", "#29487d", "#87bdd8", "#AEDEF4", "#012F42",
+        "#75E1F2", "#3B6565", "#409ac7", "#14cfc5", "#7ad4b9"
+    ]
+
+    color_cycle = (colors * ((len(df) // len(colors)) + 1))[:len(df)]
+
+    ax.pie(df["Value"], labels=df["Line_Item_Name"], autopct="%1.1f%%", startangle=140, colors=color_cycle)
+    ax.set_title("CRE Property Type")
     fig.tight_layout()
 
     buf = io.BytesIO()
