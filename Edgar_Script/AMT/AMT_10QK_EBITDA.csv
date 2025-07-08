@@ -1,0 +1,11 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+AMT,4Q22,EBITDA,-491,mn,USD,Profitability
+AMT,1Q23,EBITDA,1503,mn,USD,Profitability
+AMT,2Q23,EBITDA,823,mn,USD,Profitability
+AMT,3Q23,EBITDA,1002,mn,USD,Profitability
+AMT,4Q23,EBITDA,386,mn,USD,Profitability
+AMT,1Q24,EBITDA,1947,mn,USD,Profitability
+AMT,2Q24,EBITDA,1956,mn,USD,Profitability
+AMT,3Q24,EBITDA,197,mn,USD,Profitability
+AMT,4Q24,EBITDA,1980,mn,USD,Profitability
+AMT,1Q25,EBITDA,1435,mn,USD,Profitability

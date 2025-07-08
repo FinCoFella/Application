@@ -1,0 +1,11 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+CCI,4Q22,EBITDA,1067,mn,USD,Profitability
+CCI,1Q23,EBITDA,1058,mn,USD,Profitability
+CCI,2Q23,EBITDA,1115,mn,USD,Profitability
+CCI,3Q23,EBITDA,928,mn,USD,Profitability
+CCI,4Q23,EBITDA,1031,mn,USD,Profitability
+CCI,1Q24,EBITDA,983,mn,USD,Profitability
+CCI,2Q24,EBITDA,918,mn,USD,Profitability
+CCI,3Q24,EBITDA,976,mn,USD,Profitability
+CCI,4Q24,EBITDA,-4086,mn,USD,Profitability
+CCI,1Q25,EBITDA,-46,mn,USD,Profitability
