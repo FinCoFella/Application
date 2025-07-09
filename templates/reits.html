@@ -189,7 +189,7 @@
         </script>
     {% endif %}
 
-    <div style="text-align:center; margin:30px 0">
+    <div id="analyzeRatioSection" style="display:none; text-align:center; margin:30px 0">
         <button id="analyzeBtn" class="ticker-button">Analyze Ratio</button>
     </div>
 
@@ -202,7 +202,7 @@
             const ticker = "{{ ticker }}";
             const analysisBox = document.getElementById("analysisBox");
             analysisBox.style.display = "block";
-            analysisBox.innerHTML = "<p>Analyzing ratio trend, please wait...</p>";
+            analysisBox.innerHTML = "<p>Analyzing financial ratio trend, please wait...</p>";
 
             const response = await fetch("/analyze_ratio", {
                 method: "POST",
@@ -216,17 +216,17 @@
                 analysisBox.innerHTML = `<p style="color:red;">${data.error}</p>`;
             } else {
                 analysisBox.innerHTML = "<h3>Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
+                document.getElementById("pdfUploadSection").style.display = "block";
             }
         });
     </script>
 
-    <div style="text-align:center; margin:30px 40px">
-        <h3>Upload PDF for EBTIDA Quarter Analysis</h3>
+    <div id="pdfUploadSection" style="display:none; text-align:center; margin:30px 40px">
+        <h3>Upload PDF for EBITDA Composition Analysis</h3>
         <form id="pdfForm" enctype="multipart/form-data">
             <input type="file" name="pdf" accept="application/pdf" required>
-            <input type="text" name="quarter" placeholder="e.g. 4Q24" required class="ticker-input" style="margin-left:10px">
             <input type="hidden" name="ticker" value="{{ ticker }}">
-            <button class="ticker-button" type="submit">Analyze PDF EBITDA</button>
+            <button class="ticker-button" type="submit">Analyze EBITDA</button>
         </form>
     </div>
 
@@ -242,7 +242,7 @@
             const formData = new FormData(form);
             const box = document.getElementById("pdfAnalysisBox");
             box.style.display = "block";
-            box.innerHTML = "<p>Analyzing financial document for selected quarter...</p>";
+            box.innerHTML = "<p>Analyzing financial document for EBITDA composition, please wait...</p>";
 
             const response = await fetch("/analyze_ebitda_pdf", {
                 method: "POST",
@@ -254,7 +254,7 @@
             if (data.error) {
                 box.innerHTML = `<p style="color:red;">${data.error}</p>`;
             } else {
-                box.innerHTML = "<h3>Quarter-Specific Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
+                box.innerHTML = "<h3>EBITDA Quarter Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
             }
         });
     </script>
