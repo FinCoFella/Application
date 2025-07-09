@@ -164,7 +164,6 @@ def banks():
 def analyze_ratio():
     try:
         ticker = request.json.get("ticker", "").strip().upper()
-        print(f"Received analysis request for: {ticker}")
 
         if not ticker:
             return {"error": "Missing ticker"}, 400
@@ -186,11 +185,9 @@ def analyze_ratio():
 
         prompt = f"""
         The following data is a quarterly trend of an unsecured debt-to-EBITDA ratio for the REIT ticker {ticker}: {trend_str}
-        Analyze how this ratio has changed over time and provide bullet points that explain possible reasons for why the financial ratio has increased or decreased materially in certain quarters.
+        Analyze how this ratio has changed over time and provide exactly 3 concise bullet point that explain possible reasons for why the financial ratio has increased or decreased materially in certain quarters.
         Use financial reasoning and trends in the REIT industry to explain changes in this company's EBITDA financial metric and unsecured debt levels. 
-        Avoid giving generic statements in the explanation."""
-
-        print("Sending to OpenAI...")
+        Avoid giving generic statements in the explanation and keep each bullet under 3 sentences."""
 
         response = client.chat.completions.create(
             model="gpt-4",
