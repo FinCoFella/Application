@@ -188,5 +188,37 @@
         });
     </script>
 {% endif %}
+
+<div style="text-align:center; margin:30px 0">
+    <button id="analyzeBtn" class="ticker-button">Analyze Ratio</button>
+</div>
+
+<div id="analysisBox"
+     style="display:none;text-align:left;margin:0 auto 40px auto;width:80%;max-width:600px;font-family:'Questrial',sans-serif;font-size:16px;">
+</div>
+
+<script>
+    document.getElementById("analyzeBtn").addEventListener("click", async () => {
+        const ticker = "{{ ticker }}";
+        const analysisBox = document.getElementById("analysisBox");
+        analysisBox.style.display = "block";
+        analysisBox.innerHTML = "<p>Analyzing ratio trend, please wait...</p>";
+
+        const response = await fetch("/analyze_ratio", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ticker })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            analysisBox.innerHTML = `<p style="color:red;">${data.error}</p>`;
+        } else {
+            analysisBox.innerHTML = "<h3>Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
+        }
+    });
+</script>
+
 </body>
 </html>

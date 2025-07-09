@@ -129,7 +129,7 @@
     </nav>
 
     <form class="ticker-form" action="{{ url_for('banks') }}" method="get">
-        <input class="ticker-input" name="ticker" placeholder="Enter ticker" value="{{ ticker }}">
+        <input class="ticker-input" name="ticker" placeholder="Enter Ticker" value="{{ ticker }}">
         <input class="ticker-input" name="quarter" placeholder="Quarter (e.g. 3Q24)" value="{{ quarter }}">
         <button class="ticker-button" style="margin-right: 10px;" type="submit" name="action" value="data">Ticker Data</button>
         <button class="ticker-button" type="submit" name="action" value="pie">Pie Chart</button>

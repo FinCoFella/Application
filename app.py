@@ -6,11 +6,13 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+from flask import jsonify
+import openai
 
 load_dotenv()
-
 odbc_reits = os.getenv("AZURE_SQL_DB_REITS")
 odbc_banks = os.getenv("AZURE_SQL_DB_BANKS")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
@@ -155,6 +157,50 @@ def banks():
             pie_png = pie_chart(df)
 
     return render_template("banks.html", ticker=ticker, quarter=quarter, rows=rows, pie_png=pie_png)
+
+@app.route("/analyze_ratio", methods=["POST"])
+def analyze_ratio():
+    ticker = request.json.get("ticker", "").strip().upper()
+
+    if not ticker:
+        return {"error": "Missing ticker"}, 400
+
+    df = load_rows_by_ticker(ticker, engine_reits)
+
+    if df.empty:
+        return {"error": "No financial data found for this ticker."}, 400
+
+    ratio_df = unsecured_debt_to_ebitda(df)
+
+    if ratio_df.empty:
+        return {"error": "Not enough data to analyze."}, 400
+
+    trend_str = "\n".join([
+        f"{row['Quarter']}: {row['Unsecured_Debt_to_EBITDA']:.2f}"
+        for _, row in ratio_df.iterrows()
+    ])
+
+    prompt = f"""
+    The following data is a quarterly trend of an unsecured debt-to-EBITDA ratio for the REIT ticker {ticker}: {trend_str}
+    Analyze how this ratio has changed over time and provide bullet points that explain possible reasons for why the financial ratio has increased or decreased materially in certain quarters.
+    Use financial reasoning and trends in the REIT industry to explain changes in this company's EBITDA financial metric and unsecured debt levels. 
+    Avoid giving generic statements in the explanation."""
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=400
+        )
+
+        result = response.choices[0].message["content"]
+        
+        return jsonify({"analysis": result})
+
+    except Exception as e:
+
+        return jsonify({"analysis": result})
 
 if __name__ == '__main__':
     app.run(debug=True)
