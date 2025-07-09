@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from flask import jsonify
 import openai
+from openai import OpenAI
 
 load_dotenv()
+
 odbc_reits = os.getenv("AZURE_SQL_DB_REITS")
 odbc_banks = os.getenv("AZURE_SQL_DB_BANKS")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
@@ -189,15 +191,15 @@ def analyze_ratio():
         Avoid giving generic statements in the explanation."""
 
         print("Sending to OpenAI...")
-        response = openai.ChatCompletion.create(
+
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
             max_tokens=400
         )
-        print("OpenAI responded")
+        result = response.choices[0].message.content
 
-        result = response.choices[0].message["content"]
         return jsonify({"analysis": result, "table": ratio_df.to_dict(orient="records")})
 
     except Exception as e:
