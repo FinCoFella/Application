@@ -216,7 +216,7 @@
             if (data.error) {
                 analysisBox.innerHTML = `<p style="color:red;">${data.error}</p>`;
             } else {
-                analysisBox.innerHTML = "<h3>Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
+                analysisBox.innerHTML = "<h3>Ratio Trend Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
                 document.getElementById("pdfUploadSection").style.display = "block";
             }
         });
@@ -255,7 +255,7 @@
             if (data.error) {
                 box.innerHTML = `<p style="color:red;">${data.error}</p>`;
             } else {
-                box.innerHTML = "<h3>EBITDA Quarter Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
+                box.innerHTML = "<h3>EBITDA Composition Analysis</h3><div>" + data.analysis.replace(/\n/g, "<br>") + "</div>";
             }
         });
     </script>

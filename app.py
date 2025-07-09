@@ -233,7 +233,7 @@ def analyze_quarter_pdf():
 
         prompt = f"""
         The following data is extracted text from {ticker}'s financial filing, which contains the company's income statement for a given quarter in the column "Three Months Ended". 
-        In 3 concise bullet points, explain why EBITDA may be negative, unusually high, or low in the most recent quarter (typically the left-most column under "Three Months Ended"). 
+        In 1 concise bullet point, identify the quarter being analyzed and explain why EBITDA may be negative, unusually high, or low in the most recent quarter (typically the left-most column under "Three Months Ended"). 
         Look for mentions of impairment charges, operating losses, debt changes, or other one-time items.
         Note that EBITDA is defined as the sum of net income, interest expense, depreciation and amortization, and provision for income taxes.
         Document Text: {doc_excerpt[:4000]}"""
