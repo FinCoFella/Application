@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>{% block title %} Home {% endblock %}</title>
         <style type="text/css">
             @import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
 
@@ -86,18 +87,19 @@
         </style>
     </head>
     <body style="background-color: white;">
-    <nav class="navbar">
-        <div class="navdiv">
-            <ul>
-                <li>
-                    <a href="{{ url_for('banks') }}">U.S. Banks ▾</a>
-                    <ul class="dropdown">
-                        <li><a href="{{ url_for('standardize_cre') }}">Standardize CRE</a></li>
-                    </ul>
-                </li>
-                <li><a href="{{ url_for('reits') }}">U.S. REITs</a></li>
-            </ul>
-        </div>
-    </nav>
+        <nav class="navbar">
+            <div class="navdiv">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('banks') }}">U.S. Banks ▾</a>
+                        <ul class="dropdown">
+                            <li><a href="{{ url_for('standardize_cre') }}">Standardize CRE</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="{{ url_for('reits') }}">U.S. REITs</a></li>
+                </ul>
+            </div>
+        </nav>
+    {% block content %}{% endblock %}
     </body>
 </html>
