@@ -122,7 +122,12 @@
         <div class="navdiv">
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('banks') }}">U.S. Banks</a></li>
+                  <li>
+                    <a href="{{ url_for('banks') }}">U.S. Banks ▾</a>
+                    <ul class="dropdown">
+                        <li><a href="{{ url_for('standardize_cre') }}">Standardize CRE</a></li>
+                    </ul>
+                </li>
                 <li><a href="{{ url_for('reits') }}">U.S. REITs</a></li>
             </ul>
         </div>

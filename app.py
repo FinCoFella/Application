@@ -1,14 +1,13 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine, text
-import os, io, base64, urllib.parse
+import os, io, base64, urllib.parse, tempfile
 from dotenv import load_dotenv
+from openai import OpenAI
+from markdown import markdown
+import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import pandas as pd
-from flask import jsonify
-import openai
-from openai import OpenAI
 import fitz
 
 load_dotenv()
@@ -51,7 +50,7 @@ def unsecured_debt_to_ebitda(df: pd.DataFrame) -> pd.DataFrame:
 
     return piv.reset_index()[["Quarter", "Unsecured_Debt_to_EBITDA"]]
 
-def chart_png(ratio_df: pd.DataFrame) -> str:
+def line_chart_png(ratio_df: pd.DataFrame) -> str:
 
     if ratio_df.empty:
         return ""
@@ -105,6 +104,77 @@ def pie_chart(df: pd.DataFrame) -> str:
     plt.close(fig)
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
+def extract_cre_table(
+    image_file,
+    ticker: str,
+    quarter: str,
+    units: str,
+    currency: str,
+    category: str,
+    ) -> str:
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+        image_file.save(tmp.name)
+        with open(tmp.name, "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    instruction = (
+        "Extract the property type labels and loan amounts from this image, then output a markdown table with columns: " 
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        "Merge 'Other general office' and 'Credit tenant lease and life sciences' into 'Office'.\n"
+        "Merge 'Other', 'Co‑op', and 'Data Center' into 'Other'.\n"
+        "Rename 'Hospitality' to 'Lodging'.\n"
+        "Add a final row 'Total CRE' containing the sum of the loan amounts.\n"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": instruction},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{image_b64}"},
+                    },
+                ],
+            }
+        ],
+    )
+    return resp.choices[0].message.content
+
+def md_table_to_rows(md_table: str):
+    rows = []
+    lines = [l for l in md_table.splitlines() if l.startswith("|")]
+    if len(lines) < 3:
+        return rows
+    for line in lines[2:]:
+        parts = [p.strip() for p in line.strip().strip("|").split("|")]
+        if len(parts) != 7:
+            continue
+        try:
+            value = float(parts[3].replace(",", ""))
+        except ValueError:
+            value = None
+        rows.append(
+            {
+                "Ticker": parts[0],
+                "Quarter": parts[1],
+                "Line_Item_Name": parts[2],
+                "Value": value,
+                "Unit": parts[4],
+                "Currency": parts[5],
+                "Category": parts[6],
+            }
+        )
+    return rows
+
 ############## Flask App Endpoints ##############
 
 app = Flask(__name__)
@@ -124,7 +194,7 @@ def reits():
         rows = df.to_dict("records") if not df.empty else []
 
         ratio_df = unsecured_debt_to_ebitda(df)
-        ratio_png = chart_png(ratio_df)
+        ratio_png = line_chart_png(ratio_df)
 
     return render_template("reits.html", ticker=ticker, rows=rows, ratio_png=ratio_png)
 
@@ -251,6 +321,37 @@ def analyze_quarter_pdf():
     except Exception as e:
         print(f"Error analyzing PDF: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/standardize_cre", methods=["GET", "POST"])
+def standardize_cre():
+    if request.method == "POST":
+        image    = request.files.get("image")
+        ticker   = request.form.get("ticker", "").strip().upper()
+        quarter  = request.form.get("quarter", "").strip()
+        units    = request.form.get("units", "").strip()
+        currency = request.form.get("currency", "").strip()
+        category = request.form.get("category", "").strip()
+
+        if not image or image.filename == "" or not image.filename.lower().endswith(".png"):
+            error_msg = "Please upload a valid PNG file."
+            return render_template("standardize_cre.html", error_msg=error_msg)
+
+        md_table  = extract_cre_table(image, ticker, quarter, units, currency, category)
+        html_table = markdown(md_table, extensions=["tables"])
+        rows = md_table_to_rows(md_table)
+
+        return render_template(
+            "standardize_cre.html",
+            html_table=html_table,
+            rows=rows,
+            ticker=ticker,
+            quarter=quarter,
+            units=units,
+            currency=currency,
+            category=category,
+        )
+    
+    return render_template("standardize_cre.html")
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

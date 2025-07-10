@@ -1,0 +1,55 @@
+{% extends "index.html" %}
+{% block title %}Standardize CRE{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;margin-top:30px">Standardize CRE</h2>
+
+<form action="{{ url_for('standardize_cre') }}"
+      method="post" enctype="multipart/form-data"
+      style="text-align:center;margin:30px auto;max-width:550px">
+
+  <input type="file" name="image" accept="image/png" required><br><br>
+
+  <input class="ticker-input" name="ticker"   placeholder="Ticker (e.g. CFG)"   value="{{ ticker or '' }}"   required>
+  <input class="ticker-input" name="quarter"  placeholder="Quarter (3Q24)"      value="{{ quarter or '' }}"  required><br><br>
+  <input class="ticker-input" name="units"    placeholder="Units (mn)"          value="{{ units or '' }}"    required>
+  <input class="ticker-input" name="currency" placeholder="Currency (USD)"      value="{{ currency or '' }}" required>
+  <input class="ticker-input" name="category" placeholder="Category (CRE)"      value="{{ category or '' }}" required><br><br>
+
+  <button class="ticker-button" type="submit">Standardize&nbsp;CRE</button>
+</form>
+
+{% if error_msg %}
+  <p class="error">{{ error_msg }}</p>
+{% endif %}
+
+{% if html_table %}
+  <div style="width:95%;margin:0 auto">{{ html_table|safe }}</div>
+{% endif %}
+
+{% if rows %}
+  <div style="overflow-x:auto;margin-top:25px">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th><th>Quarter</th><th>Line&nbsp;Item&nbsp;Name</th>
+          <th>Value</th><th>Unit</th><th>Currency</th><th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.Ticker }}</td>
+            <td>{{ r.Quarter }}</td>
+            <td>{{ r.Line_Item_Name }}</td>
+            <td>{{ "{:,}".format(r.Value) if r.Value is not none else "" }}</td>
+            <td>{{ r.Unit }}</td>
+            <td>{{ r.Currency }}</td>
+            <td>{{ r.Category }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}
