@@ -4,13 +4,13 @@ import requests
 import datetime
 from pathlib import Path
 
-CIK = '0001045609' # CCI CIK Number
+CIK = '0001045609' # PLD CIK Number
 HEADERS = {"User-Agent": "Nik (nd24@ic.ac.uk)"}
-CSV = "CCI_10QK_EBITDA.csv"
+CSV = "PLD_10QK_EBITDA.csv"
 
 RECENT_QUARTERS = 10
 RECENT_YEARS = 5  
-ABS_SIGN_FACTS = {"InterestExpenseDebt": True}
+ABS_SIGN_FACTS = {"InterestExpense": True, "InterestExpenseNonoperating":  True,}
 
 def get_fact_df(data: dict, fact_key: str) -> pd.DataFrame:
     raw_items = data["facts"]["us-gaap"][fact_key]["units"]["USD"]
@@ -132,16 +132,41 @@ def show_recent(df: pd.DataFrame, cols: list[str], n: int):
     recent_df = df.sort_values(cols[1]).tail(n)
     print(recent_df[cols].to_string(index=False))
 
-def main():
-    json_data = requests.get(
-        f"https://data.sec.gov/api/xbrl/companyfacts/CIK{CIK}.json", headers=HEADERS
-    ).json()
+def safe_get_fact_df(data: dict, fact_key: str) -> pd.DataFrame:
+    if fact_key not in data["facts"]["us-gaap"]:
+        return pd.DataFrame(
+            columns=["fy", "fp", "form", "filed", "start", "end", "val", "days"]
+        )
+    return get_fact_df(data, fact_key)
 
-    ni_raw = get_fact_df(json_data, "NetIncomeLoss")
+def switch_ie_df(data: dict) -> pd.DataFrame:
+
+    ie_v1 = safe_get_fact_df(data, "InterestExpense")            
+    ie_v2 = safe_get_fact_df(data, "InterestExpenseNonoperating")
+
+    if ie_v1.empty:
+        return ie_v2
+    if ie_v2.empty:
+        return ie_v1
+
+    key = ["fy", "fp", "end"]
+
+    ie_v1  = ie_v1.copy()
+    ie_v1["val"] = ie_v1["val"].replace(0, np.nan)
+
+    merged = (ie_v1.set_index(key).combine_first(ie_v2.set_index(key)).reset_index()
+              .loc[:, ["fy", "fp", "form", "filed", "start", "end", "val", "days"]])
+
+    return merged
+
+def main():
+    json_data = requests.get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{CIK}.json", headers=HEADERS).json()
+
+    ni_raw = get_fact_df(json_data, "ProfitLoss")
     if "ProfitLoss" in json_data["facts"]["us-gaap"]:
         ni_raw = pd.concat([ni_raw, get_fact_df(json_data, "ProfitLoss")], ignore_index=True)
 
-    ie_raw = get_fact_df(json_data, "InterestExpenseDebt")
+    ie_raw = switch_ie_df(json_data)
     te_raw = get_fact_df(json_data, "IncomeTaxExpenseBenefit")
     da_raw = get_fact_df(json_data, "DepreciationAndAmortization")
 

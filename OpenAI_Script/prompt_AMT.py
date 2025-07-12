@@ -66,9 +66,6 @@ rows = [re.split(r"\s*\|\s*", l.strip())[1:-1]
 
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-# Adjust
-df = df[~df["Year"].eq("2024")]
-
 df["Unsecured_Num"] = (pd.to_numeric(
     df["Unsecured Debt"]
         .str.replace(r"[^\d]", "", regex=True),

@@ -13,20 +13,18 @@ for i, table in enumerate(tables):
 
 debt_maturity_df = tables[0]
 
+# Adjust
 debt_maturity_df = (debt_maturity_df.loc[2:9, [0, 7, 9]].reset_index(drop=True))
 debt_maturity_df[0] = (debt_maturity_df[0].astype(str).str.extract(r'(\d{4}|Thereafter|Subtotal)')[0]).replace("Subtotal", "Total")
 
-# Adjust
 debt_maturity_df = debt_maturity_df.rename(columns={0: "Year", 7: "Secured Debt", 9: "Total Debt"})
 debt_maturity_df = debt_maturity_df.dropna(subset=["Year"])
 
-# Adjust
 for col in ["Secured Debt", "Total Debt"]:
     debt_maturity_df[col] = (pd.to_numeric(debt_maturity_df[col].astype(str).str.replace(r'[\$,()\s]', '', regex=True), errors="coerce").div(1_000).round(0).astype("int"))
 
 debt_maturity_df["Unsecured Debt"] = (debt_maturity_df["Total Debt"] - debt_maturity_df["Secured Debt"])
 
-# Adjust
 totals = (debt_maturity_df.loc[debt_maturity_df["Year"] != "Total", ["Secured Debt", "Total Debt", "Unsecured Debt"]].sum().astype("int"))
 debt_maturity_df.loc[debt_maturity_df["Year"] == "Total", ["Secured Debt", "Total Debt", "Unsecured Debt"]] = totals.values
 

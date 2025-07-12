@@ -2,6 +2,7 @@ import os
 import re
 import base64
 import pandas as pd
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -16,7 +17,7 @@ currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
 # Adjust
-image_path = "Images/PLD/PLD_1Q24_Debt.png"
+image_path = "Images/PLD/PLD_4Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
@@ -68,15 +69,7 @@ rows = [re.split(r"\s*\|\s*", l.strip())[1:-1]
 
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-# Adjust
-df = df[~df["Year"].eq("2024")]
-
-df["Unsecured_Num"] = (pd.to_numeric(
-    df["Unsecured Debt"]
-        .str.replace(r"[^\d]", "", regex=True),
-    errors="coerce")
-)
-
+df["Unsecured_Num"] = (pd.to_numeric(df["Unsecured Debt"].str.replace(r"[^\d]", "", regex=True), errors="coerce"))
 df = df.dropna(subset=["Unsecured_Num"])
 
 def bucket(y: str) -> str | None:
@@ -97,19 +90,19 @@ summary_df = (detail_df.groupby("Year", as_index=False, sort=False).agg(**{"Unse
 
 # Adjust
 manual_overrides: dict[str, int] = {
-      "2024": 0,
-      "2025": 34,
-      "2026": 2_110,
-      "2027": 2_528,
-      "2028": 3_353,
-      "2029": 3_085,
-      "2030": 2_827,
-      "2031": 2_179,
-      "2032": 1_803,
-      "2033": 2_462,
-      "2034": 2_394,
-      "Thereafter": 7_085,
-      "Total Unsecured Debt": 29_860,
+      "2025": 32,
+      "2026": 2_065,
+      "2027": 2_315,
+      "2028": 2_675,
+      "2029": 3_193,
+      "2030": 2_798,
+      "2031": 2_121,
+      "2032": 1_753,
+      "2033": 2_423,
+      "2034": 3_270,
+      "2035": 1_771,
+      "Thereafter": 6_720,
+      "Total Unsecured Debt": 31_136,
 }
 
 for yr, val in manual_overrides.items():
@@ -159,3 +152,17 @@ print(final_table.to_markdown(index=False))
 
 print("\n======================= Unsecured-Debt Buckets =======================")
 print(debt_buckets.to_string(index=False))
+
+debt_buckets["Amount"] = (debt_buckets["Amount"].str.replace(",", "", regex=False).astype(int))
+
+debt_buckets_df = (debt_buckets.rename(columns={"Unsecured Debt": "Line_Item_Name", "Amount": "Value"})
+      .loc[:, ["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]])
+
+print("\n================================ SQL Format ===============================")
+print(debt_buckets_df.head())
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "PLD_4Q24_unsecured_debt.csv"
+debt_buckets_df.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")
