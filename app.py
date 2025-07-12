@@ -321,7 +321,7 @@ def analyze_quarter_pdf():
     except Exception as e:
         print(f"Error analyzing PDF: {e}")
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
     if request.method == "POST":
