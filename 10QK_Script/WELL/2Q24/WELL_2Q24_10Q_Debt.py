@@ -16,6 +16,7 @@ for i, df in enumerate(tables):
 
 debt_maturity_df = tables[0].dropna(how="all")
 
+# Adjust
 debt_maturity_df = (debt_maturity_df.loc[5:9, [0, 1]].reset_index(drop=True))
 
 debt_maturity_df.columns = ["Year", "Unsecured Debt"]

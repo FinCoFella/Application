@@ -2,6 +2,7 @@ import os
 import re
 import base64
 import pandas as pd
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -16,7 +17,7 @@ currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
 # Adjust
-image_path = "Images/WELL/WELL_4Q24_Debt.png"
+image_path = "Images/WELL/WELL_1Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
@@ -95,15 +96,14 @@ summary_df = (detail_df.groupby("Year", as_index=False, sort=False).agg(**{"Unse
 manual_overrides: dict[str, int] = {
       "2025": 1_260,
       "2026": 700,
-      "2027": 1_882,
-      "2028": 2_474,
-      "2029": 2_085,
+      "2027": 1_906,
+      "2028": 2_480,
+      "2029": 1_050,
       "2030": 750,
       "2031": 1_350,
       "2032": 1_050,
-      "2034": 626,
-      "Thereafter": 1_150,
-      "Total Unsecured Debt": 13_327,
+      "Thereafter": 1_782,
+      "Total Unsecured Debt": 12_328,
 }
 
 for yr, val in manual_overrides.items():
@@ -153,3 +153,17 @@ print(final_table.to_markdown(index=False))
 
 print("\n======================= Unsecured-Debt Buckets =======================")
 print(debt_buckets.to_string(index=False))
+
+debt_buckets["Amount"] = (debt_buckets["Amount"].str.replace(",", "", regex=False).str.replace(r"\.0$", "", regex=True).astype(int))
+
+debt_buckets = (debt_buckets.rename(columns={"Unsecured Debt": "Line_Item_Name", "Amount": "Value"})
+      .loc[:, ["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]])
+
+print("\n================================ SQL Format ===============================")
+print(debt_buckets.head())
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+CSV = SCRIPT_DIR / "WELL_1Q24_unsecured_debt.csv"
+debt_buckets.to_csv(CSV, index=False)
+
+print(f"\n Saved SQL Unsecured Debt Table to {CSV}")

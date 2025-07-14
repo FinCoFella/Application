@@ -8,14 +8,14 @@ pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/WELL/WELL_1Q24_10Q.pdf"
 
 area = [300, 20, 480, 560]
 columns = [330, 435, 520]
-
+# Adjust
 tables = tabula.read_pdf(pdf_path, pages=21, stream=True, guess=False, area=area, columns=columns, multiple_tables=False, pandas_options={"header": None})
 
 for i, df in enumerate(tables):
     pprint(df)
 
 debt_maturity_df = tables[0].dropna(how="all")
-
+# Adjust
 debt_maturity_df = (debt_maturity_df.loc[3:7, [0, 1]].reset_index(drop=True))
 
 debt_maturity_df.columns = ["Year", "Unsecured Debt"]

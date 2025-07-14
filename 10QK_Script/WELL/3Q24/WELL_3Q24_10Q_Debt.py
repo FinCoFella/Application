@@ -12,7 +12,6 @@ for i, table in enumerate(tables):
     print(f"Table {i}:\n", table, "\n")
 
 debt_maturity_df = tables[0]
-
 debt_maturity_df = (debt_maturity_df.loc[0:6, [0, 2]].reset_index(drop=True))
 
 debt_maturity_df.columns = ["Year", "Unsecured Debt"]
