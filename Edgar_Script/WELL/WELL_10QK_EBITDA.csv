@@ -1,0 +1,11 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+WELL,4Q22,EBITDA,480,mn,USD,Profitability
+WELL,1Q23,EBITDA,515,mn,USD,Profitability
+WELL,2Q23,EBITDA,604,mn,USD,Profitability
+WELL,3Q23,EBITDA,635,mn,USD,Profitability
+WELL,4Q23,EBITDA,619,mn,USD,Profitability
+WELL,1Q24,EBITDA,651,mn,USD,Profitability
+WELL,2Q24,EBITDA,777,mn,USD,Profitability
+WELL,3Q24,EBITDA,995,mn,USD,Profitability
+WELL,4Q24,EBITDA,759,mn,USD,Profitability
+WELL,1Q25,EBITDA,883,mn,USD,Profitability
