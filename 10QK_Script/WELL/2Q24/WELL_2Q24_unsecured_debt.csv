@@ -1,0 +1,4 @@
+Ticker,Quarter,Line_Item_Name,Value,Unit,Currency,Category
+WELL,2Q24,Near-term,6342,mn,USD,Unsecured Debt
+WELL,2Q24,Long-term,5982,mn,USD,Unsecured Debt
+WELL,2Q24,Total Unsecured Debt,12324,mn,USD,Unsecured Debt
