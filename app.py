@@ -1,16 +1,15 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine, text
-import os, urllib.parse
+import os, urllib.parse, json, fitz
 from dotenv import load_dotenv
 from openai import OpenAI
 import pandas as pd
-import fitz
-import json
 
 from llm_cre_extract import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
-from load_db_ticker_rows import load_rows_by_ticker
+from load_reit_db import load_reit_ticker
+from llm_analyze_chart import analyze_ratio as run_ratio_analysis
 
 load_dotenv()
 
@@ -36,7 +35,7 @@ def reits():
     ratio_png = ""
 
     if ticker:
-        df = load_rows_by_ticker(ticker, engine_reits)
+        df = load_reit_ticker(ticker, engine_reits)
         rows = df.to_dict("records") if not df.empty else []
 
         ratio_df = unsecured_debt_to_ebitda(df)
@@ -78,43 +77,19 @@ def banks():
     return render_template("banks.html", ticker=ticker, quarter=quarter, rows=rows, pie_png=pie_png)
 
 @app.route("/analyze_ratio", methods=["POST"])
-def analyze_ratio():
+def analyze_ratio_route():
     try:
         ticker = request.json.get("ticker", "").strip().upper()
-
         if not ticker:
             return {"error": "Missing ticker"}, 400
+        
+        result = run_ratio_analysis(ticker, engine_reits, unsecured_debt_to_ebitda, client)
 
-        df = load_rows_by_ticker(ticker, engine_reits)
-
-        if df.empty:
-            return {"error": "No financial data found for this ticker."}, 400
-
-        ratio_df = unsecured_debt_to_ebitda(df)
-
-        if ratio_df.empty:
-            return {"error": "Not enough data to analyze."}, 400
-
-        trend_str = "\n".join([
-            f"{row['Quarter']}: {row['Unsecured_Debt_to_EBITDA']:.2f}"
-            for _, row in ratio_df.iterrows()
-        ])
-
-        prompt = f"""
-        The following data is a quarterly trend of an unsecured debt-to-EBITDA ratio for the REIT ticker {ticker}: {trend_str}
-        Analyze how this ratio has changed over time and provide exactly 3 concise bullet point that explain possible reasons for why the financial ratio has increased or decreased materially in certain quarters.
-        Use financial reasoning and trends in the REIT industry to explain changes in this company's EBITDA financial metric and unsecured debt levels. 
-        Avoid giving generic statements in the explanation and keep each bullet under 3 sentences."""
-
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
-            max_tokens=400
-        )
-        result = response.choices[0].message.content
-
-        return jsonify({"analysis": result, "table": ratio_df.to_dict(orient="records")})
+        return jsonify(
+            {
+                "analysis": result["analysis"],
+                "table": result["ratio_df"],
+            })
 
     except Exception as e:
         print(f"Error: {e}")
