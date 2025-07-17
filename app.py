@@ -337,7 +337,9 @@ def standardize_cre():
             return render_template("standardize_cre.html", error_msg=error_msg)
 
         md_table  = extract_cre_table(image, ticker, quarter, units, currency, category)
-        html_table = markdown(md_table, extensions=["tables"])
+        clean_table = "\n".join(line for line in md_table.splitlines() if line.lstrip().startswith("|"))
+
+        html_table = markdown(clean_table, extensions=["tables"])
         rows = md_table_to_rows(md_table)
 
         return render_template(
