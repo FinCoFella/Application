@@ -2,17 +2,17 @@
 
 {% block content %}
 
-<form action="{{ url_for('standardize_cre') }}"
-      method="post" enctype="multipart/form-data"
-      style="text-align:center;margin:30px auto;max-width:550px">
+<form class="ticker-form" 
+      action="{{ url_for('standardize_cre') }}"
+      method="post" enctype="multipart/form-data">
 
-  <input type="file" name="image" accept="image/png" required><br><br>
+  <input type="file" name="image" accept="image/png" required>
 
   <input class="ticker-input" name="ticker"   placeholder="Ticker (e.g. CFG)"   value="{{ ticker or '' }}"   required>
   <input class="ticker-input" name="quarter"  placeholder="Quarter (3Q24)"      value="{{ quarter or '' }}"  required>
   <input class="ticker-input" name="units"    placeholder="Units (mn)"          value="{{ units or '' }}"    required>
   <input class="ticker-input" name="currency" placeholder="Currency (USD)"      value="{{ currency or '' }}" required>
-  <input class="ticker-input" name="category" placeholder="Category (CRE)"      value="{{ category or '' }}" required><br><br>
+  <input class="ticker-input" name="category" placeholder="Category (CRE)"      value="{{ category or '' }}" required>
 
   <button class="ticker-button" type="submit">Standardize&nbsp;CRE</button>
 </form>
