@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text
 import os, io, base64, urllib.parse, tempfile
 from dotenv import load_dotenv
 from openai import OpenAI
-from line_chart import line_chart_png
+from charts import line_chart_png, pie_chart_png
 from markdown import markdown
 import matplotlib.pyplot as plt
 import matplotlib
@@ -51,41 +51,6 @@ def unsecured_debt_to_ebitda(df: pd.DataFrame) -> pd.DataFrame:
     piv["Unsecured_Debt_to_EBITDA"] = piv["Total Unsecured Debt"] / (piv["EBITDA"] * 4)
 
     return piv.reset_index()[["Quarter", "Unsecured_Debt_to_EBITDA"]]
-
-def pie_chart(df: pd.DataFrame) -> str:
-    fig, ax = plt.subplots(figsize=(6, 6))
-
-    df = df[df["Value"] > 0].copy()
-    total_cre_row = df[df["Line_Item_Name"] == "Total CRE"]
-
-    if total_cre_row.empty:
-        plt.close(fig)
-        return ""
-
-    total_cre_value = total_cre_row["Value"].values[0]
-    df = df[df["Line_Item_Name"] != "Total CRE"].copy()
-    df = df.sort_values(by="Value", ascending=False)
-
-    colors = [
-        "#003f5c", "#29487d", "#87bdd8", "#AEDEF4", "#012F42",
-        "#51A0AC", "#3B6565", "#409ac7", "#0f9a93", "#59C9BA"
-    ]
-
-    color_cycle = (colors * ((len(df) // len(colors)) + 1))[:len(df)]
-
-    values = df["Value"]
-    raw_labels = df["Line_Item_Name"]
-    percentages = values / total_cre_value * 100
-    labels = [f"{label}, {pct:.1f}%" for label, pct in zip(raw_labels, percentages)]
-
-    ax.pie(values, labels=labels, startangle=140, colors=color_cycle)
-    ax.set_title("CRE Loan Portfolio Distribution")
-    fig.tight_layout()
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=120)
-    plt.close(fig)
-    return base64.b64encode(buf.getvalue()).decode("ascii")
 
 def extract_cre_table(
     image_file,
@@ -210,7 +175,7 @@ def banks():
         rows = df.to_dict("records") if not df.empty else []
 
         if action == "pie" and not df.empty:
-            pie_png = pie_chart(df)
+            pie_png = pie_chart_png(df)
 
     return render_template("banks.html", ticker=ticker, quarter=quarter, rows=rows, pie_png=pie_png)
 
