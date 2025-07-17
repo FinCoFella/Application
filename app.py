@@ -3,13 +3,13 @@ from sqlalchemy import create_engine, text
 import os, urllib.parse, json, fitz
 from dotenv import load_dotenv
 from openai import OpenAI
-import pandas as pd
 
 from llm_extract_cre import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_ticker_reit
 from llm_analyze_chart import analyze_ratio as run_ratio_analysis
+from load_bank_db import load_ticker_bank
 
 load_dotenv()
 
@@ -19,8 +19,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
-
-############## Flask App Endpoints ##############
 
 app = Flask(__name__)
 
@@ -47,27 +45,10 @@ def banks():
     ticker = request.args.get("ticker", "").strip().upper()
     quarter = request.args.get("quarter", "").strip()
     action = request.args.get("action", "")
-
-    rows = None
-    pie_png = ""
+    rows, pie_png = None, ""
 
     if ticker and quarter:
-        sql = text("""
-            SELECT  Ticker,
-                    Quarter,
-                    Line_Item_Name,
-                    Value,
-                    Unit,
-                    Currency,
-                    Category
-            FROM    dbo.Financial_Line_Item
-            WHERE   Ticker = :ticker AND Quarter = :quarter
-            ORDER BY Line_Item_Name
-        """)
-    
-        with engine_banks.begin() as conn:
-            df = pd.read_sql(sql, conn, params={"ticker": ticker, "quarter": quarter})
-
+        df = load_ticker_bank(ticker, quarter, engine_banks)
         rows = df.to_dict("records") if not df.empty else []
 
         if action == "pie" and not df.empty:
@@ -79,13 +60,13 @@ def banks():
 def analyze_ratio_route():
     try:
         ticker = request.json.get("ticker", "").strip().upper()
+
         if not ticker:
             return {"error": "Missing ticker"}, 400
         
         result = run_ratio_analysis(ticker, engine_reits, unsecured_debt_to_ebitda, client)
 
-        return jsonify(
-            {
+        return jsonify({
                 "analysis": result["analysis"],
                 "table": result["ratio_df"],
             })

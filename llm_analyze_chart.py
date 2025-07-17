@@ -3,7 +3,7 @@ from openai import OpenAI
 import pandas as pd
 from load_db_ticker_rows import load_rows_by_ticker
 
-def build_prompt(ticker: str, ratio_df: pd.DataFrame) -> str:
+def llm_prompt_for_ratio(ticker: str, ratio_df: pd.DataFrame) -> str:
 
     trend_str = "\n".join([
         f"{row['Quarter']}: {row['Unsecured_Debt_to_EBITDA']:.2f}"
@@ -25,7 +25,7 @@ def analyze_ratio(ticker: str, engine, unsecured_debt_to_ebitda, client: OpenAI)
     if ratio_df.empty:
         raise ValueError("Not enough data to analyze.")
     
-    prompt = build_prompt(ticker, ratio_df)
+    prompt = llm_prompt_for_ratio(ticker, ratio_df)
 
     response = client.chat.completions.create(
         model="gpt-4",
