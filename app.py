@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import pandas as pd
 import fitz
 import json
-from llm_cre_extract import extract_cre_table
+from llm_cre_extract import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 
@@ -44,32 +44,6 @@ def load_rows_by_ticker(ticker: str, engine) -> pd.DataFrame:
         df = pd.read_sql(sql, conn, params={"ticker": ticker.upper()})
 
     return df
-
-def md_table_to_rows(md_table: str):
-    rows = []
-    lines = [l for l in md_table.splitlines() if l.startswith("|")]
-    if len(lines) < 3:
-        return rows
-    for line in lines[2:]:
-        parts = [p.strip() for p in line.strip().strip("|").split("|")]
-        if len(parts) != 7:
-            continue
-        try:
-            value = float(parts[3].replace(",", ""))
-        except ValueError:
-            value = None
-        rows.append(
-            {
-                "Ticker": parts[0],
-                "Quarter": parts[1],
-                "Line_Item_Name": parts[2],
-                "Value": value,
-                "Unit": parts[4],
-                "Currency": parts[5],
-                "Category": parts[6],
-            }
-        )
-    return rows
 
 ############## Flask App Endpoints ##############
 

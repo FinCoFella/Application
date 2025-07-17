@@ -1,4 +1,5 @@
 import io, base64, tempfile, os
+from typing import List, Dict
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -49,3 +50,35 @@ def extract_cre_table(
         ],
     )
     return resp.choices[0].message.content
+
+############ Convert Markdown Table into Python Dictionary List ############
+def md_table_to_rows(md_table: str):
+
+    rows = []
+    lines = [l for l in md_table.splitlines() if l.startswith("|")]
+
+    if len(lines) < 3:
+        return rows
+    
+    for line in lines[2:]:
+        parts = [p.strip() for p in line.strip().strip("|").split("|")]
+        if len(parts) != 7:
+            continue
+        try:
+            value = float(parts[3].replace(",", ""))
+        except ValueError:
+            value = None
+
+        rows.append(
+            {
+                "Ticker": parts[0],
+                "Quarter": parts[1],
+                "Line_Item_Name": parts[2],
+                "Value": value,
+                "Unit": parts[4],
+                "Currency": parts[5],
+                "Category": parts[6],
+            }
+        )
+
+    return rows
