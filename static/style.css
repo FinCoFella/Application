@@ -81,24 +81,28 @@ li:hover .dropdown {
     display: block;
 }
 
-.ticker-form input[type="file"]{
-    order:-1;
-    flex:1 0 100%;
-    text-align:center;
-    margin:0 auto 10px;
+.ticker-form{                      
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+    margin:30px auto;
+    max-width:1000px;
 }
 
-.ticker-button{
-    flex:0 0 auto;
-}
-
-.ticker-form .ticker-button{
-    order:99;
+.file-row{
+    order:-1;               
+    flex:1 0 100%;          
+    display:flex;
+    justify-content:center;
+    align-items:center; 
+    margin-bottom:10px;
+    width:100%;
 }
 
 .ticker-input{
     flex:0 0 120px;
-    width:80px;
+    width:120px;
     padding:6px 10px;
     border:1px solid #00aeef;
     border-radius:4px;
@@ -115,18 +119,9 @@ li:hover .dropdown {
     font-family:'Questrial',sans-serif;
     cursor:pointer;
 }
+
 .ticker-button:hover{
     background:#00395d;
-}
-
-.file-row{
-    order:-1;               
-    flex:1 0 100%;          
-    display:flex;
-    justify-content:center;
-    align-items:center; 
-    margin-bottom:10px;
-    width:100%;
 }
 
 .error{
