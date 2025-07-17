@@ -17,7 +17,7 @@ currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
 # Adjust
-image_path = "Images/PLD/PLD_3Q24_Debt.png"
+image_path = "Images/PLD/PLD_1Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
