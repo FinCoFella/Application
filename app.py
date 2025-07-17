@@ -11,6 +11,7 @@ from load_reit_db import load_ticker_reit
 from load_bank_db import load_ticker_bank
 from llm_analyze_chart import analyze_ratio as run_ratio_analysis
 from llm_analyze_doc import analyze_quarter_doc
+from bank_stnd_cre import override_values, build_rows_from_llm
 
 load_dotenv()
 
@@ -97,6 +98,8 @@ def analyze_quarter_pdf_route():
 
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
+
+    ##### User CRE Values Override Route #####
     if request.method == "POST" and request.form.get("override") == "1":
         ticker   = request.form["ticker"]
         quarter  = request.form["quarter"]
@@ -105,26 +108,7 @@ def standardize_cre():
         category = request.form["category"]
 
         orig_rows = json.loads(request.form["orig_rows_json"])
-
-        override_rows = []
-        total_override = 0.0
-
-        for r in orig_rows:
-            r2 = r.copy()
-            if r["Line_Item_Name"] != "Total CRE":
-                field_name = f"ov_{r['Line_Item_Name'].replace(' ', '_')}"
-                try:
-                    new_val = float(request.form.get(field_name, "") or r["Value"])
-                except ValueError:
-                    new_val = r["Value"]
-                r2["Value"] = new_val
-                total_override += new_val
-            override_rows.append(r2)
-
-        for r2 in override_rows:
-            if r2["Line_Item_Name"] == "Total CRE":
-                r2["Value"] = total_override
-                break
+        override_rows = override_values(orig_rows, request.form)
 
         return render_template(
             "standardize_cre.html",
@@ -137,6 +121,7 @@ def standardize_cre():
             category=category,
         )
     
+    ##### User PNG Upload Route for LLM Analysis #####
     elif request.method == "POST":
         image    = request.files.get("image")
         ticker   = request.form.get("ticker", "").strip().upper()
@@ -149,9 +134,7 @@ def standardize_cre():
             error_msg = "Please upload a valid PNG file."
             return render_template("standardize_cre.html", error_msg=error_msg)
 
-        md_table  = extract_cre_table(image, ticker, quarter, units, currency, category)
-        clean_table = "\n".join(line for line in md_table.splitlines() if line.lstrip().startswith("|"))
-        rows = md_table_to_rows(clean_table)
+        rows = build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category)
 
         return render_template(
             "standardize_cre.html",
