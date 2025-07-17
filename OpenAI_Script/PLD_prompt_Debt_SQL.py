@@ -10,7 +10,7 @@ load_dotenv()
 SQL_SSMS_USER = os.getenv("SQL_SSMS_USER")
 SQL_SSMS_PASS = os.getenv("SQL_SSMS_PASS")
 
-sql_df = pd.read_csv(Path(__file__).with_name("PLD_4Q24_unsecured_debt.csv"))
+sql_df = pd.read_csv(Path(__file__).with_name("PLD_1Q24_unsecured_debt.csv"))
 
 odbc = (
     "DRIVER=ODBC Driver 17 for SQL Server;"
