@@ -16,7 +16,7 @@ def extract_inc_stmt_text(pdf: fitz.Document) -> str:
 
         return target_text
 
-def build_llm_prompt_for_EBITDA(ticker: str, doc_excerpt: str) -> str:
+def llm_prompt_for_EBITDA(ticker: str, doc_excerpt: str) -> str:
      return f"""
         The following data is extracted text from {ticker}'s financial filing, which contains the company's income statement for a given quarter in the column "Three Months Ended". 
         In 1 concise bullet point, identify the quarter being analyzed and explain why EBITDA may be negative, unusually high, or low in the most recent quarter (typically the left-most column under "Three Months Ended"). 
@@ -26,7 +26,7 @@ def build_llm_prompt_for_EBITDA(ticker: str, doc_excerpt: str) -> str:
 
 def analyze_quarter_doc(pdf_bytes: bytes, ticker: str, client: OpenAI) -> Dict[str, str]:
      
-        doc = fitz.open(stream=pdf_bytes.read(), filetype="pdf")
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
 
         target_text = extract_inc_stmt_text(doc)
         
@@ -34,7 +34,7 @@ def analyze_quarter_doc(pdf_bytes: bytes, ticker: str, client: OpenAI) -> Dict[s
             raise ValueError("Could not find the Income Statement section in the PDF.")
         
         normalized_text = " ".join(target_text.split())
-        prompt = build_llm_prompt_for_EBITDA(ticker, normalized_text[:4000])
+        prompt = llm_prompt_for_EBITDA(ticker, normalized_text[:4000])
 
         response = client.chat.completions.create(
             model="gpt-4",

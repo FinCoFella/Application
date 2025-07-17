@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-from sqlalchemy import create_engine, text
-import os, urllib.parse, json, fitz
+from sqlalchemy import create_engine
+import os, urllib.parse, json
 from dotenv import load_dotenv
 from openai import OpenAI
 
