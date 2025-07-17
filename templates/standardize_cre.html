@@ -6,7 +6,9 @@
       action="{{ url_for('standardize_cre') }}"
       method="post" enctype="multipart/form-data">
 
-  <input type="file" name="image" accept="image/png" required>
+  <div class="file-row">
+      <input type="file" name="image" accept="image/png" required>
+  </div>
 
   <input class="ticker-input" name="ticker"   placeholder="Ticker"   value="{{ ticker or '' }}"   required>
   <input class="ticker-input" name="quarter"  placeholder="Quarter"      value="{{ quarter or '' }}"  required>
