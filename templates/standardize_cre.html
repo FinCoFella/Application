@@ -23,13 +23,9 @@
   <p class="error">{{ error_msg }}</p>
 {% endif %}
 
-{% if html_table %}
-  <div style="width:95%;margin:0 auto">{{ html_table|safe }}</div>
-{% endif %}
-
 {% if rows %}
-  <div style="overflow-x:auto;margin-top:25px">
-    <table>
+  <div class="table-wrapper">
+    <table class="styled-table">
       <thead>
         <tr>
           <th>Ticker</th><th>Quarter</th><th>Line&nbsp;Item&nbsp;Name</th>
