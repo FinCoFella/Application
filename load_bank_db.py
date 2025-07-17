@@ -2,12 +2,8 @@ from sqlalchemy import text
 import pandas as pd
 
 def load_ticker_bank(ticker: str, quarter: str, engine) -> pd.DataFrame:
-    """
-    Return all line-items for one bank ticker / quarter
-    (empty DataFrame if nothing matches).
-    """
-    sql = text(
-        """
+
+    sql = text( """
         SELECT  Ticker,
                 Quarter,
                 Line_Item_Name,
@@ -19,8 +15,8 @@ def load_ticker_bank(ticker: str, quarter: str, engine) -> pd.DataFrame:
         WHERE   Ticker = :ticker
           AND   Quarter = :quarter
         ORDER BY Line_Item_Name
-        """
-    )
+        """)
+    
     with engine.begin() as conn:
         return pd.read_sql(sql, conn, params={
             "ticker": ticker.upper(),

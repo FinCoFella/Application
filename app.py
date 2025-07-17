@@ -8,8 +8,9 @@ from llm_extract_cre import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_ticker_reit
-from llm_analyze_chart import analyze_ratio as run_ratio_analysis
 from load_bank_db import load_ticker_bank
+from llm_analyze_chart import analyze_ratio as run_ratio_analysis
+from llm_analyze_doc import analyze_quarter_doc
 
 load_dotenv()
 
@@ -76,7 +77,7 @@ def analyze_ratio_route():
         return jsonify({"error": str(e)}), 500
     
 @app.route("/analyze_ebitda_pdf", methods=["POST"])
-def analyze_quarter_pdf():
+def analyze_quarter_pdf_route():
     try:
         file = request.files.get("pdf")
         ticker = request.form.get("ticker", "").strip().upper()
@@ -84,44 +85,15 @@ def analyze_quarter_pdf():
         if not file or not ticker:
             return jsonify({"error": "Missing PDF or ticker."}), 400
 
-        doc = fitz.open(stream=file.read(), filetype="pdf")
+        result = analyze_quarter_doc(file.read(), ticker, client)
+        return jsonify(result)
 
-        target_text = ""
-        for i, page in enumerate(doc):
-            text = page.get_text()
-            if "CONDENSED CONSOLIDATED STATEMENT OF OPERATIONS" in text.upper():
-
-                target_text = text
-                if i + 1 < len(doc):
-                    target_text += "\n" + doc[i + 1].get_text()
-                break
-        
-        if not target_text:
-            return jsonify({"error": "Could not find the Income Statement section in the PDF."}), 400
-        
-        normalized_text = " ".join(target_text.split())
-        doc_excerpt = normalized_text[:4000]
-
-        prompt = f"""
-        The following data is extracted text from {ticker}'s financial filing, which contains the company's income statement for a given quarter in the column "Three Months Ended". 
-        In 1 concise bullet point, identify the quarter being analyzed and explain why EBITDA may be negative, unusually high, or low in the most recent quarter (typically the left-most column under "Three Months Ended"). 
-        Look for mentions of impairment charges, operating losses, debt changes, or other one-time items.
-        Note that EBITDA is defined as the sum of net income, interest expense, depreciation and amortization, and provision for income taxes.
-        Document Text: {doc_excerpt[:4000]}"""
-
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.4,
-            max_tokens=500
-        )
-
-        result = response.choices[0].message.content
-        return jsonify({"analysis": result})
-
+    except ValueError as verror:
+        return jsonify({"error": str(verror)}), 400
+    
     except Exception as e:
-        print(f"Error analyzing PDF: {e}")
-        return jsonify({"error": str(e)}), 500
+        print("Error in analyzing PDF:", e, flush=True)
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
