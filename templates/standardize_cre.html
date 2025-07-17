@@ -1,7 +1,6 @@
 {% extends "index.html" %}
 
 {% block content %}
-<h2 style="text-align:center;margin-top:30px">Standardize CRE</h2>
 
 <form action="{{ url_for('standardize_cre') }}"
       method="post" enctype="multipart/form-data"
@@ -10,7 +9,7 @@
   <input type="file" name="image" accept="image/png" required><br><br>
 
   <input class="ticker-input" name="ticker"   placeholder="Ticker (e.g. CFG)"   value="{{ ticker or '' }}"   required>
-  <input class="ticker-input" name="quarter"  placeholder="Quarter (3Q24)"      value="{{ quarter or '' }}"  required><br><br>
+  <input class="ticker-input" name="quarter"  placeholder="Quarter (3Q24)"      value="{{ quarter or '' }}"  required>
   <input class="ticker-input" name="units"    placeholder="Units (mn)"          value="{{ units or '' }}"    required>
   <input class="ticker-input" name="currency" placeholder="Currency (USD)"      value="{{ currency or '' }}" required>
   <input class="ticker-input" name="category" placeholder="Category (CRE)"      value="{{ category or '' }}" required><br><br>
