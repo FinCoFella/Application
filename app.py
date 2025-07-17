@@ -1,18 +1,16 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine, text
-import os, io, base64, urllib.parse, tempfile
+import os, urllib.parse
 from dotenv import load_dotenv
 from openai import OpenAI
-from markdown import markdown
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("Agg")
 import pandas as pd
 import fitz
 import json
+
 from llm_cre_extract import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
+from load_db_ticker_rows import load_rows_by_ticker
 
 load_dotenv()
 
@@ -22,28 +20,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
-
-############## Helper Functions ##############
-
-def load_rows_by_ticker(ticker: str, engine) -> pd.DataFrame:
-
-    sql = text("""
-        SELECT  Ticker,
-                Quarter,
-                Line_Item_Name,
-                Value,
-                Unit,
-                Currency,
-                Category
-        FROM    dbo.Financial_Line_Item
-        WHERE   Ticker = :ticker
-        ORDER BY Quarter
-    """)
-
-    with engine.begin() as conn:
-        df = pd.read_sql(sql, conn, params={"ticker": ticker.upper()})
-
-    return df
 
 ############## Flask App Endpoints ##############
 
