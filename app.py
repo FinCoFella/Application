@@ -338,13 +338,10 @@ def standardize_cre():
 
         md_table  = extract_cre_table(image, ticker, quarter, units, currency, category)
         clean_table = "\n".join(line for line in md_table.splitlines() if line.lstrip().startswith("|"))
-
-        html_table = markdown(clean_table, extensions=["tables"])
-        rows = md_table_to_rows(md_table)
+        rows = md_table_to_rows(clean_table)
 
         return render_template(
             "standardize_cre.html",
-            html_table=html_table,
             rows=rows,
             ticker=ticker,
             quarter=quarter,

@@ -129,3 +129,37 @@ li:hover .dropdown {
     margin-top:20px;
     font-family:'Questrial',sans-serif;
 }
+
+.table-wrapper {
+    max-width: 95%;
+    margin: 30px auto;
+    overflow-x: auto;
+}
+
+.styled-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: 'Questrial', sans-serif;
+}
+
+.styled-table thead th {
+    background: #00aeef;
+    color: #fff;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.styled-table tbody td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background: #f1f9ff;
+}
+
+.styled-table tbody tr:hover {
+    background: #e1f3ff;
+}
