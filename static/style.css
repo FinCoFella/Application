@@ -90,8 +90,23 @@ li:hover .dropdown {
     max-width:900px;
 }
 
+.ticker-form input[type="file"]{
+    order:-1;
+    flex:0 0 auto;
+    align-self:center;
+}
+
+.ticker-button{
+    flex:0 0 auto;
+}
+
+.ticker-form .ticker-button{
+    order:99;
+}
+
 .ticker-input{
-    width:120px;
+    flex:0 0 120px;
+    width:120px; 
     padding:6px 10px;
     border:1px solid #00aeef;
     border-radius:4px;
