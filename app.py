@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import pandas as pd
 import fitz
+import json
 
 load_dotenv()
 
@@ -324,7 +325,47 @@ def analyze_quarter_pdf():
 
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
-    if request.method == "POST":
+    if request.method == "POST" and request.form.get("override") == "1":
+        ticker   = request.form["ticker"]
+        quarter  = request.form["quarter"]
+        units    = request.form["units"]
+        currency = request.form["currency"]
+        category = request.form["category"]
+
+        orig_rows = json.loads(request.form["orig_rows_json"])
+
+        override_rows = []
+        total_override = 0.0
+
+        for r in orig_rows:
+            r2 = r.copy()
+            if r["Line_Item_Name"] != "Total CRE":
+                field_name = f"ov_{r['Line_Item_Name'].replace(' ', '_')}"
+                try:
+                    new_val = float(request.form.get(field_name, "") or r["Value"])
+                except ValueError:
+                    new_val = r["Value"]
+                r2["Value"] = new_val
+                total_override += new_val
+            override_rows.append(r2)
+
+        for r2 in override_rows:
+            if r2["Line_Item_Name"] == "Total CRE":
+                r2["Value"] = total_override
+                break
+
+        return render_template(
+            "standardize_cre.html",
+            rows=orig_rows,
+            override_rows=override_rows,
+            ticker=ticker,
+            quarter=quarter,
+            units=units,
+            currency=currency,
+            category=category,
+        )
+    
+    elif request.method == "POST":
         image    = request.files.get("image")
         ticker   = request.form.get("ticker", "").strip().upper()
         quarter  = request.form.get("quarter", "").strip()
@@ -343,11 +384,13 @@ def standardize_cre():
         return render_template(
             "standardize_cre.html",
             rows=rows,
+            override_rows=None,
             ticker=ticker,
             quarter=quarter,
             units=units,
             currency=currency,
             category=category,
+            orig_rows_json=json.dumps(rows),
         )
     
     return render_template("standardize_cre.html")
