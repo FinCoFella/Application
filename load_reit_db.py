@@ -1,7 +1,7 @@
 from sqlalchemy import text
 import pandas as pd
 
-def load_rows_by_ticker(ticker: str, engine) -> pd.DataFrame:
+def load_ticker_reit(ticker: str, engine) -> pd.DataFrame:
 
     sql = text("""
         SELECT  Ticker,
