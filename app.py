@@ -3,8 +3,6 @@ from sqlalchemy import create_engine, text
 import os, io, base64, urllib.parse, tempfile
 from dotenv import load_dotenv
 from openai import OpenAI
-from llm_cre_extract import extract_cre_table
-from charts import line_chart_png, pie_chart_png
 from markdown import markdown
 import matplotlib.pyplot as plt
 import matplotlib
@@ -12,6 +10,9 @@ matplotlib.use("Agg")
 import pandas as pd
 import fitz
 import json
+from llm_cre_extract import extract_cre_table
+from charts import line_chart_png, pie_chart_png
+from calc import unsecured_debt_to_ebitda
 
 load_dotenv()
 
@@ -43,15 +44,6 @@ def load_rows_by_ticker(ticker: str, engine) -> pd.DataFrame:
         df = pd.read_sql(sql, conn, params={"ticker": ticker.upper()})
 
     return df
-
-def unsecured_debt_to_ebitda(df: pd.DataFrame) -> pd.DataFrame:
-
-    filt = df["Line_Item_Name"].isin(["EBITDA", "Total Unsecured Debt"])
-    piv = (df.loc[filt].pivot(index="Quarter", columns="Line_Item_Name", values="Value").dropna().sort_index())
-
-    piv["Unsecured_Debt_to_EBITDA"] = piv["Total Unsecured Debt"] / (piv["EBITDA"] * 4)
-
-    return piv.reset_index()[["Quarter", "Unsecured_Debt_to_EBITDA"]]
 
 def md_table_to_rows(md_table: str):
     rows = []
