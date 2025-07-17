@@ -3,9 +3,7 @@
 <!--- UPLOAD IMAGE AND USER INPUT FIELDS --->
 {% block content %}
 
-<form class="ticker-form" 
-      action="{{ url_for('standardize_cre') }}"
-      method="post" enctype="multipart/form-data">
+<form class="ticker-form" action="{{ url_for('standardize_cre') }}" method="post" enctype="multipart/form-data">
 
   <div class="file-row">
       <input type="file" name="image" accept="image/png" required>
@@ -18,6 +16,7 @@
   <input class="ticker-input" name="category" placeholder="Category"      value="{{ category or '' }}" required>
 
   <button class="ticker-button" type="submit">Standardize&nbsp;CRE</button>
+
 </form>
 
 {% if error_msg %}
@@ -51,7 +50,7 @@
   </div>
 
 <!--- OVERRIDE VALUE FORM --->
-  <form action="{{ url_for('standardize_cre') }}" method="post" class="ticker-form" style="margin-top:20px">
+  <form class="ticker-form override-form" action="{{ url_for('standardize_cre') }}" method="post" style="margin-top:20px">
      <input type="hidden" name="override" value="1">
      <input type="hidden" name="ticker" value="{{ ticker }}">
      <input type="hidden" name="quarter" value="{{ quarter }}">
@@ -62,10 +61,8 @@
      
      {% for r in rows if r.Line_Item_Name != 'Total CRE' %}
          <label style="display:flex;align-items:center;gap:6px">
-            {{ r.Line_Item_Name }}:
-            <input type="number" step="0.01"
-                   name="ov_{{ r.Line_Item_Name|replace(' ', '_') }}"
-                   value="{{ r.Value }}" style="width:120px">
+          {{ r.Line_Item_Name }}:
+          <input class="ticker-input" type="text" name="ov_{{ r.Line_Item_Name|replace(' ', '_') }}" placeholder="{{ r.Value }}">
          </label>
      {% endfor %}
      <button class="ticker-button" type="submit">Override Values</button>

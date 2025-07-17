@@ -163,3 +163,12 @@ li:hover .dropdown {
 .styled-table tbody tr:hover {
     background: #e1f3ff;
 }
+
+.override-form input[type="number"] {
+    flex:0 0 120px;
+    width:120px;
+    padding:6px 10px;
+    border:1px solid #00aeef;
+    border-radius:4px;
+    font-family:'Questrial',sans-serif;
+}
