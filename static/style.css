@@ -81,15 +81,6 @@ li:hover .dropdown {
     display: block;
 }
 
-.ticker-form{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:10px;
-    margin:30px auto;
-    max-width:1000px;
-}
-
 .ticker-form input[type="file"]{
     order:-1;
     flex:1 0 100%;
@@ -133,7 +124,9 @@ li:hover .dropdown {
     flex:1 0 100%;          
     display:flex;
     justify-content:center;
+    align-items:center; 
     margin-bottom:10px;
+    width:100%;
 }
 
 .error{
