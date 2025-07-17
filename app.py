@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import pandas as pd
 
-from llm_cre_extract import extract_cre_table, md_table_to_rows
+from llm_extract_cre import extract_cre_table, md_table_to_rows
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_reit_ticker
@@ -37,7 +37,6 @@ def reits():
     if ticker:
         df = load_reit_ticker(ticker, engine_reits)
         rows = df.to_dict("records") if not df.empty else []
-
         ratio_df = unsecured_debt_to_ebitda(df)
         ratio_png = line_chart_png(ratio_df)
 
