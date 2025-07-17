@@ -164,11 +164,21 @@ li:hover .dropdown {
     background: #e1f3ff;
 }
 
-.override-form input[type="number"] {
-    flex:0 0 120px;
-    width:120px;
-    padding:6px 10px;
-    border:1px solid #00aeef;
-    border-radius:4px;
-    font-family:'Questrial',sans-serif;
+.override-form {
+    display: flex;           
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;      
+    margin: 25px auto;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.override-form label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Questrial', sans-serif;
+    white-space: nowrap;               
 }
