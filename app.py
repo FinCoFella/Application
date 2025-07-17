@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 import os, io, base64, urllib.parse, tempfile
 from dotenv import load_dotenv
 from openai import OpenAI
+from llm_cre_extract import extract_cre_table
 from charts import line_chart_png, pie_chart_png
 from markdown import markdown
 import matplotlib.pyplot as plt
@@ -51,51 +52,6 @@ def unsecured_debt_to_ebitda(df: pd.DataFrame) -> pd.DataFrame:
     piv["Unsecured_Debt_to_EBITDA"] = piv["Total Unsecured Debt"] / (piv["EBITDA"] * 4)
 
     return piv.reset_index()[["Quarter", "Unsecured_Debt_to_EBITDA"]]
-
-def extract_cre_table(
-    image_file,
-    ticker: str,
-    quarter: str,
-    units: str,
-    currency: str,
-    category: str,
-    ) -> str:
-    
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-        image_file.save(tmp.name)
-        with open(tmp.name, "rb") as f:
-            image_b64 = base64.b64encode(f.read()).decode("utf-8")
-
-    instruction = (
-        "Extract the property type labels and loan amounts from this image, then output a markdown table with columns: " 
-            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-        "Merge 'Other general office' and 'Credit tenant lease and life sciences' into 'Office'.\n"
-        "Merge 'Other', 'Co‑op', and 'Data Center' into 'Other'.\n"
-        "Rename 'Hospitality' to 'Lodging'.\n"
-        "Add a final row 'Total CRE' containing the sum of the loan amounts.\n"
-        f"- Ticker: {ticker}\n"
-        f"- Quarter: {quarter}\n"
-        f"- Units: {units}\n"
-        f"- Currency: {currency}\n"
-        f"- Category: {category}"
-    )
-
-    resp = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": instruction},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{image_b64}"},
-                    },
-                ],
-            }
-        ],
-    )
-    return resp.choices[0].message.content
 
 def md_table_to_rows(md_table: str):
     rows = []
