@@ -182,3 +182,10 @@ li:hover .dropdown {
     font-family: 'Questrial', sans-serif;
     white-space: nowrap;               
 }
+
+.override-form .ticker-input,
+.override-form input[type="text"]{
+    width:80px;
+    padding:4px 6px;
+    flex:0 0 80px;
+}
