@@ -1,38 +1,59 @@
-import io, base64, tempfile, os
-from typing import List, Dict
+import base64, tempfile, os
+from typing import Dict, Callable
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def extract_cre_table(
-    image_file,
-    ticker: str,
-    quarter: str,
-    units: str,
-    currency: str,
-    category: str,
-    ) -> str:
-    
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-        image_file.save(tmp.name)
-        with open(tmp.name, "rb") as f:
-            image_b64 = base64.b64encode(f.read()).decode("utf-8")
-
-    instruction = (
+def cfg_prompt(ticker, quarter, units, currency, category) -> str: 
+    return (
         "Extract the property type labels and loan amounts from this image, then output a markdown table with columns: " 
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         "Merge 'Other general office' and 'Credit tenant lease and life sciences' into 'Office'.\n"
         "Merge 'Other', 'Co‑op', and 'Data Center' into 'Other'.\n"
         "Rename 'Hospitality' to 'Lodging'.\n"
-        "Add a final row 'Total CRE' containing the sum of the loan amounts.\n"
+        "Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
         f"- Category: {category}"
     )
+
+def bac_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        "Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        "Rename 'Industrial / Warehouse' to 'Industrial', "
+        "'Multi-family rental' to 'Multi-family', "
+        "'Shopping centers / Retail' to 'Retail', "
+        "'Hotel / Motels' to 'Lodging', "
+        "and 'Multi-use' to 'Mixed-use'. "
+        "Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
+PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
+    "CFG": cfg_prompt,
+    "BAC": bac_prompt,
+}
+
+############ Extract Data into Markdown Table ############
+def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> str:
+    
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+        image_file.save(tmp.name)
+        with open(tmp.name, "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    ticker_up = ticker.upper()
+    prompt_builder = PROMPT_MAP.get(ticker_up, cfg_prompt)
+    instruction = prompt_builder(ticker_up, quarter, units, currency, category)
 
     resp = client.chat.completions.create(
         model="gpt-4o",
@@ -49,6 +70,7 @@ def extract_cre_table(
             }
         ],
     )
+
     return resp.choices[0].message.content
 
 ############ Convert Markdown Table into Python Dictionary List ############
