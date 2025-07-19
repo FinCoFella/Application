@@ -54,10 +54,27 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Category: {category}"
     )
 
+def wfc_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image. "
+        f"Generate a markdown table with the following columns in this exact order: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Combine 'Shopping center' with 'Retail (excl shopping)' into a 'Retail' property type row."
+        f"Combine 'Other' with 'Storage facility', 'Mobile home park', and 'Instiutional' into a single 'Other' property type row."
+        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"Rename 'Apartments' to 'Multi-family', 'Industrial/warehouse' to 'Industrial', 'Hotel/motel' to 'Lodging', and 'Mixed use properties' to 'Mixed-use'."
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
     "BAC": bac_prompt,
     "JPM": jpm_prompt,
+    "WFC": wfc_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
