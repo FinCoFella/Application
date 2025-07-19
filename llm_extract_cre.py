@@ -27,7 +27,7 @@ def bac_prompt(ticker, quarter, units, currency, category) -> str:
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multi-family rental' to 'Multi-family', 'Shopping centers / Retail' to 'Retail', 'Hotel / Motels' to 'Lodging', and 'Multi-use' to 'Mixed-use'. "
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-        f"Format the values without using decimals"
+        f"Format the values without using decimals."
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -44,8 +44,8 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
         f"Combine 'Other Income Producing Properties' and 'Services and Non Income Producing' into a single 'Other' property type row"
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
         f"Rename 'Multifamily' to 'Multi-family'."
-        f"Divide the values by 1000 and format them without decimals.\n"
-        f"Format the values without using decimals"
+        f"Divide the values by 1000.\n"
+        f"Format the values without using decimals."
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -62,7 +62,7 @@ def wfc_prompt(ticker, quarter, units, currency, category) -> str:
         f"Combine 'Other' with 'Storage facility', 'Mobile home park', and 'Instiutional' into a single 'Other' property type row."
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
         f"Rename 'Apartments' to 'Multi-family', 'Industrial/warehouse' to 'Industrial', 'Hotel/motel' to 'Lodging', and 'Mixed use properties' to 'Mixed-use'."
-        f"Format the values without using decimals"
+        f"Format the values without using decimals."
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -93,7 +93,7 @@ def hban_prompt(ticker, quarter, units, currency, category) -> str:
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
         f"Rename 'Multifamily' to 'Multi-family'. "
-        f"Divide the values by 1000 and format them without decimals.\n"
+        f"Divide the values by 1000.\n"
         f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
@@ -124,14 +124,30 @@ def fcnca_prompt(ticker, quarter, units, currency, category) -> str:
         f"Combine 'Medical Office' and 'General Office' values into a single 'Office' property type row."
         f"Rename 'Hotel/Motel' to 'Lodging' and 'Industrial / Warehouse' to 'Industrial'."
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-        f"Divide the values by 1000 and format them without decimals.\n"
+        f"Divide the values by 1000.\n"
         f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
         f"- Category: {category}"
-    ) 
+    )
+
+def pnc_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
+        f"Combine 'Seniors Housing' into the 'Other' property type row.'"
+        f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multifamily' to 'Multi-family', 'Mixed Use' to 'Mixed-use', and 'Hotel / Motel' to 'Lodging'."
+        f"Divide the values by 1000.\n"
+        f"Format the values without using decimals"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
@@ -142,6 +158,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "HBAN": hban_prompt,
     "SNV": snv_prompt,
     "FCNCA": fcnca_prompt,
+    "PNC": pnc_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
