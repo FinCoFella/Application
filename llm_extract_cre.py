@@ -124,6 +124,7 @@ def fcnca_prompt(ticker, quarter, units, currency, category) -> str:
         f"Combine 'Medical Office' and 'General Office' values into a single 'Office' property type row."
         f"Rename 'Hotel/Motel' to 'Lodging' and 'Industrial / Warehouse' to 'Industrial'."
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
+        f"Divide the values by 1000 and format them without decimals.\n"
         f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
