@@ -151,10 +151,13 @@ def pnc_prompt(ticker, quarter, units, currency, category) -> str:
 
 def rf_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category."
         f"Add the percentages from 'Residential homebuilders' and 'Residential land' into 'Residential'." 
         f"Add the percentages of 'Data center', 'Diversified', 'Healthcare', 'Commercial land', 'Other', and 'Self storage' into the single 'Other' property type."
+        f"Then multiply each percentage by property type by the dollar amount value in the center of the pie chart to determine the loan amount by property type."
+        f"Format the values without using decimals."
         f"Rename 'Apartments' to 'Multi-family' and 'Hotel' to 'Lodging'."
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
