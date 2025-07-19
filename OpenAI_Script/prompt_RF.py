@@ -17,7 +17,7 @@ currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
 # Adjust
-image_path = "Images/RF/RF_3Q24_CRE.png"
+image_path = "Images/RF/RF_2Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
@@ -89,13 +89,13 @@ def parse_numeric(val):
 df["Loan Amount"] = df["Loan Amount"].apply(parse_numeric)
 
 corrections = {
-    "Multi-family": 4_235,
-    "Office":       1_555,
-    "Industrial":  2_233,
-    "Retail":       1_371,
-    "Lodging":      801,
-    "Residential":  1_217,
-    "Other":       3_989
+    "Multi-family": 4_290,
+    "Office":       1_576,
+    "Industrial":  2_215,
+    "Retail":       1_388,
+    "Lodging":      811,
+    "Residential":  1_201,
+    "Other":       4_118
 }
 
 df.set_index("CRE Property Type", inplace=True)
