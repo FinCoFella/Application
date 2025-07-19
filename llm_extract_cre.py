@@ -87,12 +87,27 @@ def key_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Category: {category}"
     )
 
+def hban_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount. "
+        f"Rename 'Multifamily' to 'Multi-family'. "
+        f"Format the values without using decimals"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )    
+
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
     "BAC": bac_prompt,
     "JPM": jpm_prompt,
     "WFC": wfc_prompt,
     "KEY": key_prompt,
+    "HBAN": hban_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
