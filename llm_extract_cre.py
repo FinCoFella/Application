@@ -23,14 +23,11 @@ def cfg_prompt(ticker, quarter, units, currency, category) -> str:
 
 def bac_prompt(ticker, quarter, units, currency, category) -> str:
     return (
-        "Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
+        f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-        "Rename 'Industrial / Warehouse' to 'Industrial', "
-        "'Multi-family rental' to 'Multi-family', "
-        "'Shopping centers / Retail' to 'Retail', "
-        "'Hotel / Motels' to 'Lodging', "
-        "and 'Multi-use' to 'Mixed-use'. "
-        "Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multi-family rental' to 'Multi-family', 'Shopping centers / Retail' to 'Retail', 'Hotel / Motels' to 'Lodging', and 'Multi-use' to 'Mixed-use'. "
+        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -47,6 +44,8 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
         f"Combine 'Other Income Producing Properties' and 'Services and Non Income Producing' into a single 'Other' property type row"
         f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
         f"Rename 'Multifamily' to 'Multi-family'."
+        f"Divide the values by 1000 and format them without decimals.\n"
+        f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -56,13 +55,31 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
 
 def wfc_prompt(ticker, quarter, units, currency, category) -> str:
     return (
-        f"Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image. "
+        f"Extract the property type labels below the 'By property:' column and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image. "
         f"Generate a markdown table with the following columns in this exact order: "
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Combine 'Shopping center' with 'Retail (excl shopping)' into a 'Retail' property type row."
         f"Combine 'Other' with 'Storage facility', 'Mobile home park', and 'Instiutional' into a single 'Other' property type row."
         f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
         f"Rename 'Apartments' to 'Multi-family', 'Industrial/warehouse' to 'Industrial', 'Hotel/motel' to 'Lodging', and 'Mixed use properties' to 'Mixed-use'."
+        f"Format the values without using decimals"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
+def key_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels below the 'Nonowner-occupied' column and their corresponding values in the 'Total' column from this image. "
+        f"Generate a markdown table with the following columns in this exact order: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Combine'Medical Office' into the single 'Office' property type label."
+        f"Combine 'Diversified' into 'Other', add 'Data Center' into 'Other', add 'Land & Residential' into 'Other', add 'Self Storage' into 'Other', add 'Senior Housing' into 'Other', add 'Skilled Nursing' into 'Other', and add 'Student Housing' into 'Other'."        
+        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"Rename 'Multifamily' to 'Multi-family'."
+        f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
@@ -75,6 +92,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "BAC": bac_prompt,
     "JPM": jpm_prompt,
     "WFC": wfc_prompt,
+    "KEY": key_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
