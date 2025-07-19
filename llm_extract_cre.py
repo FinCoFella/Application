@@ -136,12 +136,12 @@ def fcnca_prompt(ticker, quarter, units, currency, category) -> str:
 def pnc_prompt(ticker, quarter, units, currency, category) -> str:
     return (
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
-            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-        f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category."
         f"Combine 'Seniors Housing' into the 'Other' property type row.'"
         f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multifamily' to 'Multi-family', 'Mixed Use' to 'Mixed-use', and 'Hotel / Motel' to 'Lodging'."
-        f"Divide the values by 1000.\n"
-        f"Format the values without using decimals"
+        f"Divide the values by 1000."
+        f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount."
+        f"Format the values without using decimals."
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
