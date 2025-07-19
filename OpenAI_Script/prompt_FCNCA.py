@@ -29,7 +29,7 @@ instruction_text = (
     f"- Category: {category}\n"
     f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount. "
     f"Combine 'Medical Office' and 'General Office' values into a single 'Office' property type row."
-    f"rename 'Hotel/Motel' to 'Lodging' and 'Industrial / Warehouse' to 'Industrial'."
+    f"Rename 'Hotel/Motel' to 'Lodging' and 'Industrial / Warehouse' to 'Industrial'."
     f"Format everything as a clean markdown table."
 )
 
