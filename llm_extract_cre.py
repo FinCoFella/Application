@@ -8,6 +8,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def cfg_prompt(ticker, quarter, units, currency, category) -> str: 
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n" 
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Merge 'Other general office' and 'Credit tenant lease and life sciences' into 'Office'.\n"
@@ -25,6 +26,7 @@ def cfg_prompt(ticker, quarter, units, currency, category) -> str:
 
 def bac_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multi-family rental' to 'Multi-family', 'Shopping centers / Retail' to 'Retail', 'Hotel / Motels' to 'Lodging', and 'Multi-use' to 'Mixed-use'.\n"
@@ -40,6 +42,7 @@ def bac_prompt(ticker, quarter, units, currency, category) -> str:
 
 def jpm_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels, their corresponding values in the 'Credit Exposure' column, and the '% Drawn' column from this image.\n"
         f"Then multiply the values in '% Drawn' column with the values in th 'Credit Exposure' column and place the product in a 'Loan Amount' column.\n"
         f"Generate a markdown table with the following columns in this exact order:\n"
@@ -59,6 +62,7 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
 
 def wfc_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels below the 'By property:' column and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image.\n"
         f"Generate a markdown table with the following columns in this exact order:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
@@ -77,6 +81,7 @@ def wfc_prompt(ticker, quarter, units, currency, category) -> str:
 
 def key_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels below the 'Nonowner-occupied' column and their corresponding values in the 'Total' column from this image.\n"
         f"Generate a markdown table with the following columns in this exact order:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
@@ -95,6 +100,7 @@ def key_prompt(ticker, quarter, units, currency, category) -> str:
 
 def hban_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Rename 'Multifamily' to 'Multi-family'.\n"
@@ -111,6 +117,7 @@ def hban_prompt(ticker, quarter, units, currency, category) -> str:
 
 def snv_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Rename 'Other Investment Properties' into 'Other' and add 'Development & Land' into the single 'Other' property type row.\n"
@@ -127,6 +134,7 @@ def snv_prompt(ticker, quarter, units, currency, category) -> str:
 
 def fcnca_prompt(ticker, quarter, units, currency, category) -> str:
        return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Combine 'Medical Office' and 'General Office' values into a single 'Office' property type row.\n"
@@ -144,6 +152,7 @@ def fcnca_prompt(ticker, quarter, units, currency, category) -> str:
 
 def pnc_prompt(ticker, quarter, units, currency, category) -> str:
     return (
+        f"Carefully read and execute the following instructions:\n"
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
         f"Combine 'Seniors Housing' into the 'Other' property type row.'\n"
