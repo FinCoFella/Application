@@ -100,7 +100,23 @@ def hban_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
         f"- Category: {category}"
-    )    
+    )
+
+def snv_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Rename 'Other Investment Properties' into 'Other' and add 'Development & Land' into the single 'Other' property type row."
+        f"Rename 'Office Building' to 'Office', 'Shopping Centers' to 'Retail', 'Hotels' to 'Lodging', 'Warehouse' to 'Industrial', and 'Residential Properties' to 'Residential'."
+        f"Ensure the final row is labeled 'Total CRE' in the property type column and shows the total loan amount. "
+        f"Format the values without using decimals"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
@@ -109,6 +125,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "WFC": wfc_prompt,
     "KEY": key_prompt,
     "HBAN": hban_prompt,
+    "SNV": snv_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
