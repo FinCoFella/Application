@@ -51,7 +51,6 @@ def jpm_prompt(ticker, quarter, units, currency, category) -> str:
         f"Rename 'Multifamily' to 'Multi-family'.\n"
         f"The only property type labels in the table should be 'Multi-family', 'Industrial', 'Lodging', 'Office', 'Retail', 'Mixed-use', 'Residential' and 'Other'.\n"
         f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-        f"Divide the values by 1000.\n"
         f"Truncate the trailing decimal value.\n"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
