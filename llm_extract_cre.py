@@ -75,7 +75,7 @@ def key_prompt(ticker, quarter, units, currency, category) -> str:
         f"Extract the property type labels below the 'Nonowner-occupied' column and their corresponding values in the 'Total' column from this image. "
         f"Generate a markdown table with the following columns in this exact order: "
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-        f"Combine'Medical Office' into the single 'Office' property type label."
+        f"Combine the 'Medical Office' value with the 'Office' value into a single 'Office' property type."
         f"Combine 'Diversified' into 'Other', add 'Data Center' into 'Other', add 'Land & Residential' into 'Other', add 'Self Storage' into 'Other', add 'Senior Housing' into 'Other', add 'Skilled Nursing' into 'Other', and add 'Student Housing' into 'Other'."        
         f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
         f"Rename 'Multifamily' to 'Multi-family'."
