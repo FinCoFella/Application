@@ -38,9 +38,26 @@ def bac_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Category: {category}"
     )
 
+def jpm_prompt(ticker, quarter, units, currency, category) -> str:
+    return (
+        f"Extract the property type labels, their corresponding values in the 'Credit Exposure' column, and the '% Drawn' column from this image. "
+        f"Then multiply the values in '% Drawn' column with the values in th 'Credit Exposure' column and place the product in a 'Loan Amount' column. "
+        f"Generate a markdown table with the following columns in this exact order: "
+            "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+        f"Combine 'Other Income Producing Properties' and 'Services and Non Income Producing' into a single 'Other' property type row"
+        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount.\n"
+        f"Rename 'Multifamily' to 'Multi-family'."
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
     "BAC": bac_prompt,
+    "JPM": jpm_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
