@@ -91,8 +91,9 @@ def hban_prompt(ticker, quarter, units, currency, category) -> str:
     return (
         f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns: "
             "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-        f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount. "
+        f"Ensure the final row is labeled 'Total CRE' in the property type column and shows the total loan amount. "
         f"Rename 'Multifamily' to 'Multi-family'. "
+        f"Divide the values by 1000 and format them without decimals.\n"
         f"Format the values without using decimals"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
