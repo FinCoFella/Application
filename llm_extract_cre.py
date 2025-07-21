@@ -209,6 +209,8 @@ Synonyms = {
     "Other general office": "Office",
     "Credit tenant lease and life sciences": "Office",
 
+    "Single Family / Land Development": "Residential",
+
     "Land Carry": "Other",
     "Diversified": "Other",
     "Data Center": "Other",
