@@ -187,6 +187,57 @@ def rf_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Category: {category}"
     )
 
+Standardized_Labels = ["Multi-family", "Industrial", "Lodging", "Office", "Retail", "Mixed-use", "Residential", "Other"]
+
+Synonyms = { 
+    "Multifamily": "Multi-family", 
+    "Apartments": "Multi-family",
+    "Multi-family rental": 'Multi-family',
+
+    "Industrial / Warehouse": "Industrial",
+    "Industrial/warehouse": "Industrial",
+    "Warehouse": "Industrial",
+
+    "Hotel": "Lodging",
+    "Hotel/Motel": "Lodging",
+    "Hospitality": "Lodging",
+
+    "Mixed use": "Mixed-use",
+    "Multi use": "Mixed-use",
+
+    "Medical Office": "Office",
+    "Other General Office": "Office",
+    "Credit Tenant Lease and Life Sciences": "Office",
+
+    "Land Carry": "Other",
+    "Diversified": "Other",
+    "Data Center": "Other",
+    "Self-Storage": "Other"
+}
+
+def generic_prompt(ticker, quarter, units, currency, category) -> str:
+    syn_labels = "\n".join(f" - '{k}' → '{v}'" for k, v in Synonyms.items())
+    stnd_labels = ", ".join(Standardized_Labels)
+
+    return (
+    f"Carefully read and execute the following instructions:\n"
+
+    f" 1. Extract the property type labels and loan amounts from this image.\n"
+    f" 2. If the property type labels are in percentages, multiply each percentage by the dollar amount value in the center of the pie chart to determine the loan amount by property type.\n"
+    f" 3. Normalize the labels using this case-insensitive mapping: {syn_labels}\n"
+    f" 4. Then keep only these final labels: {stnd_labels}\n"
+    f" 5. Produce a markdown table with these columns:\n"
+    f"    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
+    f" 6. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
+    f" 7. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
+    f" 8. Apply the following user input values for the respective columns:\n"
+        f"- Ticker: {ticker}\n"
+        f"- Quarter: {quarter}\n"
+        f"- Units: {units}\n"
+        f"- Currency: {currency}\n"
+        f"- Category: {category}"
+    )
+
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
     "BAC": bac_prompt,
@@ -209,7 +260,7 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
             image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
     ticker_up = ticker.upper()
-    prompt_builder = PROMPT_MAP.get(ticker_up, cfg_prompt)
+    prompt_builder = PROMPT_MAP.get(ticker_up, generic_prompt)
     instruction = prompt_builder(ticker_up, quarter, units, currency, category)
 
     resp = client.chat.completions.create(
