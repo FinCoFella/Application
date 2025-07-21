@@ -119,6 +119,7 @@ def standardize_cre():
             units=units,
             currency=currency,
             category=category,
+            explanation=None,
         )
     
     ##### User PNG Upload Route for LLM Analysis #####
@@ -139,7 +140,6 @@ def standardize_cre():
         return render_template(
             "standardize_cre.html",
             rows=rows,
-            explanation=explanation,
             override_rows=None,
             ticker=ticker,
             quarter=quarter,
@@ -147,6 +147,7 @@ def standardize_cre():
             currency=currency,
             category=category,
             orig_rows_json=json.dumps(rows),
+            explanation=explanation,
         )
     
     return render_template("standardize_cre.html")
