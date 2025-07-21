@@ -231,13 +231,14 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
     f"    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
     f" 6. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
     f" 7. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
-    f" 8. Apply the following user input values for the respective columns:\n"
+    f" 8. If required, keep the values in millions.\n"
+    f" 9. Apply the following user input values for the respective columns:\n"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
         f"- Category: {category}\n"
-    f" 9. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
+    f" 10. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
     )
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
