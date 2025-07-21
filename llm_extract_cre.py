@@ -233,7 +233,7 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
     f"    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
     f" 6. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
     f" 7. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
-    f" 8. If required, keep the values in millions.\n"
+    f" 8. Adjust the values to millions if the values in the chart are in billions.\n"
     f" 9. Apply the following user input values for the respective columns:\n"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
