@@ -245,7 +245,7 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
-    "BAC": bac_prompt,
+    #"BAC": bac_prompt,
     "JPM": jpm_prompt,
     "WFC": wfc_prompt,
     "KEY": key_prompt,
