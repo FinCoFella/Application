@@ -3,10 +3,11 @@ import json
 
 def build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category):
 
-    md_table  = extract_cre_table(image, ticker, quarter, units, currency, category)
+    md_table, explanation  = extract_cre_table(image, ticker, quarter, units, currency, category)
     clean_table = "\n".join(line for line in md_table.splitlines() if line.lstrip().startswith("|"))
+    rows = md_table_to_rows(clean_table)
 
-    return md_table_to_rows(clean_table)
+    return rows, explanation
 
 def override_values(orig_rows: List[Dict], form_dict) -> List[Dict]:
 

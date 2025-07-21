@@ -23,6 +23,12 @@
   <p class="error">{{ error_msg }}</p>
 {% endif %}
 
+{% if explanation %}
+<div class="explanation-box markdown">
+  {{ explanation|markdown }}
+</div>
+{% endif %}
+
 <!--- FIRST TABLE: LLM EXTRACTED VALUES --->
 {% if rows %}
   <div class="table-wrapper">
@@ -57,7 +63,7 @@
      <input type="hidden" name="units" value="{{ units }}">
      <input type="hidden" name="currency" value="{{ currency }}">
      <input type="hidden" name="category" value="{{ category }}">
-     <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json|safe }}'>
+     <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json|tojson }}'>
      
      {% for r in rows if r.Line_Item_Name != 'Total CRE' %}
          <label style="display:flex;align-items:center;gap:6px">

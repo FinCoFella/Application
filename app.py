@@ -134,11 +134,12 @@ def standardize_cre():
             error_msg = "Please upload a valid PNG file."
             return render_template("standardize_cre.html", error_msg=error_msg)
 
-        rows = build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category)
+        rows, explanation = build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category)
 
         return render_template(
             "standardize_cre.html",
             rows=rows,
+            explanation=explanation,
             override_rows=None,
             ticker=ticker,
             quarter=quarter,

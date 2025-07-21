@@ -1,4 +1,4 @@
-import base64, tempfile, os
+import base64, tempfile, os, re
 from typing import Dict, Callable
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -206,12 +206,13 @@ Synonyms = {
     "Multi use": "Mixed-use",
 
     "Medical Office": "Office",
-    "Other General Office": "Office",
-    "Credit Tenant Lease and Life Sciences": "Office",
+    "Other general office": "Office",
+    "Credit tenant lease and life sciences": "Office",
 
     "Land Carry": "Other",
     "Diversified": "Other",
     "Data Center": "Other",
+    "Self Storage": "Other",
     "Self-Storage": "Other"
 }
 
@@ -235,7 +236,8 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
-        f"- Category: {category}"
+        f"- Category: {category}\n"
+    f" 9. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
     )
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
@@ -252,7 +254,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
 }
 
 ############ Extract Data into Markdown Table ############
-def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> str:
+def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> tuple[str, str]:
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
         image_file.save(tmp.name)
@@ -279,7 +281,17 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
         ],
     )
 
-    return resp.choices[0].message.content
+    raw = resp.choices[0].message.content
+
+    parts = re.split(r'^#+\s*Explanation\b', raw, flags=re.I|re.M) 
+    
+    if len(parts) == 1:
+        parts.append("LLM does not have an explanation.")
+
+    md_table = parts[0].strip()
+    explanation = parts[1].strip()
+
+    return md_table, explanation
 
 ############ Convert Markdown Table into Python Dictionary List ############
 def md_table_to_rows(md_table: str):

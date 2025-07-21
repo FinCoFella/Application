@@ -189,3 +189,13 @@ li:hover .dropdown {
     padding:4px 6px;
     flex:0 0 80px;
 }
+
+.explanation-box{
+    max-width: 950px;
+    margin: 15px auto;
+    background:#f9f9ff;
+    border-left:4px solid #00aeef;
+    padding:10px 14px;
+    font-family:'Questrial',sans-serif;
+    font-size:14px;
+}
