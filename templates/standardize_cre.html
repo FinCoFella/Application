@@ -63,7 +63,7 @@
      <input type="hidden" name="units" value="{{ units }}">
      <input type="hidden" name="currency" value="{{ currency }}">
      <input type="hidden" name="category" value="{{ category }}">
-     <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json|tojson }}'>
+     <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json | tojson | safe}}'>
      
      {% for r in rows if r.Line_Item_Name != 'Total CRE' %}
          <label style="display:flex;align-items:center;gap:6px">

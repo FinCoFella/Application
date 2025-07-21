@@ -146,7 +146,7 @@ def standardize_cre():
             units=units,
             currency=currency,
             category=category,
-            orig_rows_json=json.dumps(rows),
+            orig_rows_json=rows,
             explanation=explanation,
         )
     
