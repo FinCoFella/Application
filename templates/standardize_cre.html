@@ -56,7 +56,11 @@
   </div>
 
 <!--- OVERRIDE VALUE FORM --->
+
+  {% set standardized_labels = ['Multi-family', 'Industrial', 'Lodging', 'Office', 'Retail', 'Mixed-use', 'Residential', 'Other'] %}
+
   <form class="ticker-form override-form" action="{{ url_for('standardize_cre') }}" method="post" style="margin-top:20px">
+
      <input type="hidden" name="override" value="1">
      <input type="hidden" name="ticker" value="{{ ticker }}">
      <input type="hidden" name="quarter" value="{{ quarter }}">
@@ -65,12 +69,15 @@
      <input type="hidden" name="category" value="{{ category }}">
      <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json | tojson | safe}}'>
      
-     {% for r in rows if r.Line_Item_Name != 'Total CRE' %}
-         <label style="display:flex;align-items:center;gap:6px">
-          {{ r.Line_Item_Name }}:
-          <input class="ticker-input" type="text" name="ov_{{ r.Line_Item_Name|replace(' ', '_') }}" placeholder="{{ r.Value }}">
-         </label>
+    {% for label in standardized_labels %}
+      {# look up the existing row (if any) #}
+      {% set row = (rows | selectattr('Line_Item_Name', 'equalto', label) | first) %}
+        <label style="display:flex;align-items:center;gap:6px">
+          {{ label }}:
+          <input class="ticker-input" type="text" name="ov_{{ label|replace(' ', '_') }}" placeholder="{{ row.Value if row else '' }}">
+        </label>
      {% endfor %}
+
      <button class="ticker-button" type="submit">Override Values</button>
   </form>
 {% endif %}
