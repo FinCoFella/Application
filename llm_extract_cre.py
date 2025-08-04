@@ -215,6 +215,7 @@ Synonyms = {
     "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
+    "Seniors Housing": "Other",
     "Diversified": "Other",
     "Healthcare": "Other",
     "Commercial Land": "Other",
@@ -258,7 +259,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     # "HBAN": hban_prompt,
     "SNV": snv_prompt,
     # "FCNCA": fcnca_prompt,
-    "PNC": pnc_prompt,
+    # "PNC": pnc_prompt,
     # "RF": rf_prompt,
 }
 
