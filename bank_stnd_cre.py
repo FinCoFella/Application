@@ -1,5 +1,6 @@
 from typing import List, Dict
-import json
+
+STANDARDIZED_LABELS = ["Multi-family", "Industrial", "Lodging", "Office", "Retail", "Mixed-use", "Residential", "Other"]
 
 def build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category):
 
@@ -11,29 +12,50 @@ def build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quar
 
 def override_values(orig_rows: List[Dict], form_dict) -> List[Dict]:
 
-    override_rows = []
-    total_override = 0.0
+    by_label = {r["Line_Item_Name"]: r.copy()
+            for r in orig_rows if r["Line_Item_Name"] != "Total CRE"}
+    
+    template = next((r for r in orig_rows
+            if r["Line_Item_Name"] != "Total CRE"), {})
 
-    for r in orig_rows:
-        r2 = r.copy()
+    new_rows: List[Dict] = []
+    grand_total = 0.0
 
-        if r["Line_Item_Name"] != "Total CRE":
+    for label in STANDARDIZED_LABELS:
+        field = f"ov_{label.replace(' ', '_')}"
+        user_val = (form_dict.get(field) or "").strip()
 
-            field_name = f"ov_{r['Line_Item_Name'].replace(' ', '_')}"
-
+        if user_val:
             try:
-                new_val = float(form_dict.get(field_name, "") or r["Value"])
+                value = float(user_val)
             except ValueError:
-                new_val = r["Value"]
+                value = 0.0
+        elif label in by_label:
+            value = by_label[label]["Value"]
+        else:
+            continue
 
-            r2["Value"] = new_val
-            total_override += new_val
+        row = by_label.get(label) or {
+            "Ticker":   form_dict["ticker"],
+            "Quarter":  form_dict["quarter"],
+            "Line_Item_Name": label,
+            "Unit":     template.get("Unit", ""),
+            "Currency": template.get("Currency", ""),
+            "Category": template.get("Category", ""),
+        }
+    
+        row["Value"] = value
+        new_rows.append(row)
+        grand_total += value
 
-        override_rows.append(r2)
+    new_rows.append({
+        "Ticker":   form_dict["ticker"],
+        "Quarter":  form_dict["quarter"],
+        "Line_Item_Name": "Total CRE",
+        "Value":    round(grand_total, 1),
+        "Unit":     template.get("Unit", ""),
+        "Currency": template.get("Currency", ""),
+        "Category": template.get("Category", ""),
+    })
 
-    for r2 in override_rows:
-        if r2["Line_Item_Name"] == "Total CRE":
-            r2["Value"] = round(total_override, 1)
-            break
-
-    return override_rows
+    return new_rows
