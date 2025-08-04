@@ -211,9 +211,13 @@ Synonyms = {
     "Credit tenant lease and life sciences": "Office",
 
     "Single Family / Land Development": "Residential",
+    "Residential Land": "Residential",
+    "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
     "Diversified": "Other",
+    "Healthcare": "Other",
+    "Commercial Land": "Other",
     "Data Center": "Other",
     "Self Storage": "Other",
     "Self-Storage": "Other",
@@ -255,7 +259,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "SNV": snv_prompt,
     # "FCNCA": fcnca_prompt,
     "PNC": pnc_prompt,
-    "RF": rf_prompt,
+    # "RF": rf_prompt,
 }
 
 ############ Extract Data into Markdown Table ############
