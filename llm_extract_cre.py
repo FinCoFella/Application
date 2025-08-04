@@ -251,7 +251,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "JPM": jpm_prompt,
     "WFC": wfc_prompt,
     "KEY": key_prompt,
-    "HBAN": hban_prompt,
+    # "HBAN": hban_prompt,
     "SNV": snv_prompt,
     # "FCNCA": fcnca_prompt,
     "PNC": pnc_prompt,
