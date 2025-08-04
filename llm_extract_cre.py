@@ -199,19 +199,24 @@ Synonyms = {
     "Warehouse": "Industrial",
 
     "Hotel": "Lodging",
+    "Hotels": "Lodging",
     "Hotel/Motel": "Lodging",
     "Hospitality": "Lodging",
 
     "Mixed use": "Mixed-use",
     "Multi use": "Mixed-use",
 
+    "Shopping Centers": "Retail",
+
     "Medical Office": "Office",
     "General Office": "Office",
+    "Office Building": "Office",
     "Other general office": "Office",
     "Credit tenant lease and life sciences": "Office",
 
     "Single Family / Land Development": "Residential",
     "Residential Land": "Residential",
+    "Residential Properties": "Residential",
     "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
@@ -222,6 +227,8 @@ Synonyms = {
     "Data Center": "Other",
     "Self Storage": "Other",
     "Self-Storage": "Other",
+    "Development & Land": "Other",
+    "Other Investment Properties": "Other",
     "Co-op": "Other"
 }
 
@@ -257,7 +264,7 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "WFC": wfc_prompt,
     "KEY": key_prompt,
     # "HBAN": hban_prompt,
-    "SNV": snv_prompt,
+    # "SNV": snv_prompt,
     # "FCNCA": fcnca_prompt,
     # "PNC": pnc_prompt,
     # "RF": rf_prompt,
