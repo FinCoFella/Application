@@ -216,7 +216,8 @@ Synonyms = {
     "Diversified": "Other",
     "Data Center": "Other",
     "Self Storage": "Other",
-    "Self-Storage": "Other"
+    "Self-Storage": "Other",
+    "Co-op": "Other"
 }
 
 def generic_prompt(ticker, quarter, units, currency, category) -> str:
