@@ -206,6 +206,7 @@ Synonyms = {
     "Multi use": "Mixed-use",
 
     "Medical Office": "Office",
+    "General Office": "Office",
     "Other general office": "Office",
     "Credit tenant lease and life sciences": "Office",
 
@@ -245,13 +246,13 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     "CFG": cfg_prompt,
-    #"BAC": bac_prompt,
+    # "BAC": bac_prompt,
     "JPM": jpm_prompt,
     "WFC": wfc_prompt,
     "KEY": key_prompt,
     "HBAN": hban_prompt,
     "SNV": snv_prompt,
-    "FCNCA": fcnca_prompt,
+    # "FCNCA": fcnca_prompt,
     "PNC": pnc_prompt,
     "RF": rf_prompt,
 }

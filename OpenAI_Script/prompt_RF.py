@@ -88,6 +88,7 @@ def parse_numeric(val):
 
 df["Loan Amount"] = df["Loan Amount"].apply(parse_numeric)
 
+# Adjust
 corrections = {
     "Multi-family": 4_066,
     "Office":       1_509,
@@ -136,5 +137,5 @@ else:
 
 final_cols = ["Ticker","Quarter","CRE Property Type","Loan Amount","Units","Currency","Category"]
 
-print("\nAdjusted Table\n")
+print("\nOverride Table\n")
 print(df[final_cols].to_markdown(index=False))

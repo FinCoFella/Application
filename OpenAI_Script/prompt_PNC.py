@@ -62,6 +62,7 @@ lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
+# Adjust
 corrections = {
     "Multi-family": "16.1",    
     "Office": "7.8",
@@ -82,5 +83,5 @@ df.loc[df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"]
     .astype(float).sum()
 )
 
-print("\nAdjusted Table:\n")
+print("\nOverride Table:\n")
 print(df.to_markdown(index=False))

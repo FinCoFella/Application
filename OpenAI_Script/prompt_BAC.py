@@ -15,6 +15,7 @@ units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
+# Adjust
 image_path = "Images/BAC/BAC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
@@ -61,6 +62,7 @@ lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
+# Adjust
 corrections = {
     "Office": "15.1",
     "Multi-family": "11.0",
@@ -82,5 +84,5 @@ df.loc[df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"]
     .astype(float).sum()
 )
 
-print("\nAdjusted Table:\n")
+print("\nOverride Table:\n")
 print(df.to_markdown(index=False))

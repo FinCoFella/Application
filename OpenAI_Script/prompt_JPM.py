@@ -87,5 +87,5 @@ cre_df.loc[total, "Loan Amount"] = cre_df.loc[~total, "Loan Amount"].sum()
 cre_df["Loan Amount"] = cre_df["Loan Amount"].round().astype(int).map("{:,}".format)
 cre_df = cre_df[["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Units", "Currency", "Category"]]
 
-print("\nAdjusted SQL Table\n")
+print("\nOverride Table\n")
 print(cre_df.to_markdown(index=False))

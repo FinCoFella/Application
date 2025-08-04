@@ -88,5 +88,5 @@ cre_df["Loan Amount"] = (cre_df["CRE Property Type"].map(corrections))
 
 cre_df["Loan Amount"] = (cre_df["Loan Amount"].astype(int).map("{:,}".format))
 
-print("\nAdjusted SQL Table\n")
+print("\nOverride Table\n")
 print(cre_df.to_markdown(index=False))

@@ -84,5 +84,5 @@ df.loc[df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"]
 
 df["Loan Amount"] = df["Loan Amount"].astype(float).apply(lambda x: f"{x:,.0f}")
 
-print("\nAdjusted Table:\n")
+print("\nOverride Table:\n")
 print(df.to_markdown(index=False))
