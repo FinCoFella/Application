@@ -220,12 +220,16 @@ Synonyms = {
     "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
+    "Land & Residential": "Other",
+    "Senior Housing": "Other",
     "Seniors Housing": "Other",
     "Diversified": "Other",
     "Healthcare": "Other",
     "Commercial Land": "Other",
     "Data Center": "Other",
     "Self Storage": "Other",
+    "Skilled Nursing": "Other",
+    "Student Housing": "Other",
     "Self-Storage": "Other",
     "Development & Land": "Other",
     "Other Investment Properties": "Other",
@@ -241,20 +245,21 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
 
     f" 1. Extract the property type labels and loan amounts from this image.\n"
     f" 2. If the property type labels are in percentages, multiply each percentage by the dollar amount value in the center of the pie chart to determine the loan amount by property type.\n"
-    f" 3. Normalize the labels using this case-insensitive mapping: {syn_labels}\n"
-    f" 4. Then keep only these final labels: {stnd_labels}\n"
-    f" 5. Produce a markdown table with these columns:\n"
+    f" 3. If the property type values are in a 'Total' column within a table (like KEY ticker), extract these values for each property type label.\n"
+    f" 4. Normalize the labels using this case-insensitive mapping: {syn_labels}\n"
+    f" 5. Then keep only these final labels: {stnd_labels}\n"
+    f" 6. Produce a markdown table with these columns:\n"
     f"    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-    f" 6. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-    f" 7. If the values are in billions in the format of '0.0', then multiply the value by 1000 in order to convert the value into millions.\n"
-    f" 8. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
-    f" 9. Apply the following user input values for the respective columns:\n"
+    f" 7. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
+    f" 8. If the values are in billions in the format of '0.0', then multiply the value by 1000 in order to convert the value into millions.\n"
+    f" 9. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
+    f" 10. Apply the following user input values for the respective columns:\n"
         f"- Ticker: {ticker}\n"
         f"- Quarter: {quarter}\n"
         f"- Units: {units}\n"
         f"- Currency: {currency}\n"
         f"- Category: {category}\n"
-    f" 10. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
+    f" 11. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
     )
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
