@@ -219,6 +219,7 @@ Synonyms = {
     "Single Family / Land Development": "Residential",
     "Residential Land": "Residential",
     "Residential Properties": "Residential",
+    "Residential for Sale": "Residential",
     "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
