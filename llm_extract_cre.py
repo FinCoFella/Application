@@ -193,6 +193,7 @@ Synonyms = {
     "Multifamily": "Multi-family", 
     "Apartments": "Multi-family",
     "Apartments & Residential": "Multi-family",
+    "Multi Family": "Multi-family",
     "Multi-family rental": 'Multi-family',
 
     "Industrial / Warehouse": "Industrial",
@@ -221,6 +222,7 @@ Synonyms = {
     "Residential Land": "Residential",
     "Residential Properties": "Residential",
     "Residential for Sale": "Residential",
+    "Residential (Housing)": "Residential",
     "Res. Homebuilders": "Residential",
 
     "Land Carry": "Other",
