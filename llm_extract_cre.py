@@ -192,6 +192,7 @@ Standardized_Labels = ["Multi-family", "Industrial", "Lodging", "Office", "Retai
 Synonyms = { 
     "Multifamily": "Multi-family", 
     "Apartments": "Multi-family",
+    "Apartments & Residential": "Multi-family",
     "Multi-family rental": 'Multi-family',
 
     "Industrial / Warehouse": "Industrial",
@@ -211,6 +212,7 @@ Synonyms = {
     "Medical Office": "Office",
     "General Office": "Office",
     "Office Building": "Office",
+    "Healthcare Office": "Office",
     "Other general office": "Office",
     "Credit tenant lease and life sciences": "Office",
 
@@ -229,6 +231,7 @@ Synonyms = {
     "Data Center": "Other",
     "Self Storage": "Other",
     "Skilled Nursing": "Other",
+    "Specialty & Other": "Other",
     "Student Housing": "Other",
     "Self-Storage": "Other",
     "Development & Land": "Other",
