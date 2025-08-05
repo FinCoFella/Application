@@ -197,6 +197,7 @@ Synonyms = {
 
     "Industrial / Warehouse": "Industrial",
     "Industrial/warehouse": "Industrial",
+    "Warehouse/Industrial": "Industrial",
     "Warehouse": "Industrial",
 
     "Hotel": "Lodging",
@@ -229,6 +230,7 @@ Synonyms = {
     "Diversified": "Other",
     "Healthcare": "Other",
     "Commercial Land": "Other",
+    "Construction and Land": "Other",
     "Data Center": "Other",
     "Self Storage": "Other",
     "Skilled Nursing": "Other",
