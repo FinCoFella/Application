@@ -24,20 +24,20 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
                 w, h = img.size
 
                 if w > 0 and h > 0:
-                    try:
-                        resample = Image.Resampling.LANCZOS
-                    except AttributeError:
-                        resample = Image.LANCZOS
+                    max_side = 1600
+                    long_side = max(w, h)
+                    scale = min(2.0, max_side / float(long_side))
 
-                    img = img.resize((int(w*2), int(h*2)), resample=resample)
-                    img.save(tmp.name, format="PNG", optimize=True)
-
+                    if abs(scale - 1.0) > 1e-9:
+                        resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
+                        new_size = (int(w * scale), int(h * scale))
+                        img = img.resize(new_size, resample=resample)
+                img.save(tmp.name, format="PNG", optimize=True)
         except Exception:
             pass 
 
         with open(tmp.name, "rb") as f:
             data = f.read()
-
         image_b64 = base64.b64encode(data).decode("utf-8")
     
     try:
