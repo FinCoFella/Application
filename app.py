@@ -4,7 +4,7 @@ import os, urllib.parse, json
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from llm_extract_cre import extract_cre_table, md_table_to_rows, aggregate_standardized
+from llm_extract_cre import extract_cre_table, md_table_to_rows, aggregate_standardized, rows_from_slices_json_precise
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_ticker_reit
@@ -119,7 +119,7 @@ def standardize_cre():
             units=units,
             currency=currency,
             category=category,
-            orig_rows_json=json.dumps(rows),
+            orig_rows_json=json.dumps(orig_rows),
             explanation=None,
         )
     
@@ -137,6 +137,11 @@ def standardize_cre():
             return render_template("standardize_cre.html", error_msg=error_msg)
 
         rows, explanation = build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category)
+
+        rebuilt = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
+        if rebuilt:
+            rows = rebuilt
+        
         rows = aggregate_standardized(rows)
 
         return render_template(

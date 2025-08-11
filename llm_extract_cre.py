@@ -1,9 +1,12 @@
-import base64, tempfile, os, re
+import base64, tempfile, json, os, re
 from typing import Dict, Callable
 from collections import defaultdict
+from decimal import Decimal, ROUND_DOWN, getcontext
 from PIL import Image
 from dotenv import load_dotenv
 from openai import OpenAI
+
+getcontext().prec = 28
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -466,4 +469,41 @@ def aggregate_standardized(rows):
 
     total = int(sum(r["Value"] for r in out))
     out.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
+
     return out
+
+def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, currency, category):
+    m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
+
+    if not m:
+        return None
+    try:
+        data = json.loads(m.group(1))
+    except Exception:
+        return None
+
+    total = Decimal(str(data.get("total_mn", 0)))
+    slices = data.get("slices", []) or []
+
+    agg = defaultdict(Decimal)
+
+    for s in slices:
+        raw_label = str(s.get("label", "")).strip()
+        pct = s.get("percent")
+
+        if pct is None:
+            continue
+
+        amt_exact = (total * Decimal(str(pct))) / Decimal(100)
+        amt_trunc = amt_exact.quantize(Decimal("1"), rounding=ROUND_DOWN)
+
+        norm = normalize_label(raw_label)
+        if norm in Standardized_Labels:
+            agg[norm] += amt_trunc
+
+    meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
+    rows = [{**meta, "Line_Item_Name": k, "Value": int(v)} for k, v in agg.items()]
+    total_row = int(sum(r["Value"] for r in rows))
+    rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total_row})
+
+    return rows
