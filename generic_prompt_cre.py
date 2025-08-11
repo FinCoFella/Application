@@ -5,7 +5,7 @@ Standardized_Labels = ["Multi-family", "Industrial", "Lodging", "Office", "Retai
 Synonyms = { 
     "Multifamily": "Multi-family", 
     "Apartments": "Multi-family",
-    "Apartments & Residential": "Multi-family",
+    "Apartment & Residential": "Multi-family",
     "Multi Family": "Multi-family",
     "Multi-family rental": 'Multi-family',
 
