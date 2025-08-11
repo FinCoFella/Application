@@ -1,8 +1,9 @@
 import base64, tempfile, os, re
 from typing import Dict, Callable
+from collections import defaultdict
+from PIL import Image
 from dotenv import load_dotenv
 from openai import OpenAI
-from collections import defaultdict
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -316,7 +317,14 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
 def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> tuple[str, str]:
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-        image_file.save(tmp.name)
+        try:
+            with Image.open(tmp.name) as img:
+                w, h = img.size
+                img = img.resize((int(w*2), int(h*2)), Image.LANCZOS)
+                img.save(tmp.name, format="PNG", optimize=True)
+        except Exception:
+            pass 
+        
         with open(tmp.name, "rb") as f:
             image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
@@ -333,7 +341,7 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
                     {"type": "text", "text": instruction},
                     {
                         "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{image_b64}"},
+                        "image_url": {"url": f"data:image/png;base64,{image_b64}", "detail": "high"},
                     },
                 ],
             }
