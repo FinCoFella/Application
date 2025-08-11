@@ -194,4 +194,4 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     # "RF": rf_prompt,
 }
 
-prompts_all = ["cfg_prompt", "bac_prompt", "jpm_prompt", "wfc_prompt", "key_prompt", "hban_prompt", "snv_prompt", "fcnca_prompt", "pnc_prompt", "rf_prompt", "PROMPT_MAP",]
+prompts_all = ["cfg_prompt", "bac_prompt", "jpm_prompt", "wfc_prompt", "key_prompt", "hban_prompt", "snv_prompt", "fcnca_prompt", "pnc_prompt", "rf_prompt", "PROMPT_MAP"]

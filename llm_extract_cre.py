@@ -6,7 +6,7 @@ from PIL import Image
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from ticker_prompts_cre.py import PROMPT_MAP as TICKER_PROMPT_MAP
+from ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
 
 getcontext().prec = 28
 
