@@ -67,7 +67,8 @@
      <input type="hidden" name="units" value="{{ units }}">
      <input type="hidden" name="currency" value="{{ currency }}">
      <input type="hidden" name="category" value="{{ category }}">
-     <input type="hidden" name="orig_rows_json" value='{{ orig_rows_json | tojson | safe}}'>
+
+     <textarea name="orig_rows_json" hidden>{{ rows | tojson }}</textarea>
      
     {% for label in standardized_labels %}
       {# look up the existing row (if any) #}
