@@ -2,6 +2,7 @@ import base64, tempfile, os, re
 from typing import Dict, Callable
 from dotenv import load_dotenv
 from openai import OpenAI
+from collections import defaultdict
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -258,29 +259,45 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
     syn_labels = "\n".join(f" - '{k}' → '{v}'" for k, v in Synonyms.items())
     stnd_labels = ", ".join(Standardized_Labels)
 
-    return (
-    f"Carefully read and execute the following instructions:\n"
+    return f""" Extract CRE exposure from the image and exactly follow the rules below:
 
-    f" 1. Extract the property type labels and loan amounts from this image.\n"
-    f" 2. If the property type labels are in percentages, multiply each percentage by the dollar amount value in the center of the pie chart to determine the loan amount by property type.\n"
-    f" 3. If the property type values are in a 'Credit exposure' column within a table (like JPM ticker), multiply it by the percentage in the '% Drawn' column to determine the loan amount by property type.\n"
-    f" 4. If the proeprty type values are in a 'Loans outstanding balance' column within a table (like WFC ticker), extract these values for each property type label.\n"
-    f" 5. If the property type values are in a 'Total' column within a table (like KEY ticker), extract these values for each property type label.\n"
-    f" 6. Normalize the labels using this case-insensitive mapping: {syn_labels}\n"
-    f" 7. Then keep only these final labels: {stnd_labels}\n"
-    f" 8. Produce a markdown table with these columns:\n"
-    f"    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-    f" 9. Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-    f" 10. If the values are in billions in the format of '0.0', then multiply the value by 1000 in order to convert the value into millions.\n"
-    f" 11. Truncate the trailing decimal values in the 'Loan Amount' column.\n"
-    f" 12. Apply the following user input values for the respective columns:\n"
-        f"- Ticker: {ticker}\n"
-        f"- Quarter: {quarter}\n"
-        f"- Units: {units}\n"
-        f"- Currency: {currency}\n"
-        f"- Category: {category}\n"
-    f" 13. After the table, provide a second markdown block that begins with '### Explanation' and in less than 120 words describes how the labels were normalized and the total loan amount calculated.\n"
-    )
+    OBJECTIVE:
+    - Return one markdown table with the following columns in this exact order:
+        | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
+    - The last row in the 'Loan Amount' column should be the sum of all rows.
+
+    EXTRACT
+    1) Read all property type labels and their corresponding loan amounts from the image, which may be in percentages or dollar amounts.
+    2) If the values are percentages, multiply *each* one by the total dollar amount given in center of the pie chart.
+    3) If the values are in a table, follow these rules:
+        - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
+        - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
+        - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
+
+    CONVERT UNITS
+    4) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
+
+    NORMALIZE LABELS
+    5) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
+
+    AGGREGATE
+    6) After normalizing the property type lables, **Sum the amounts that map to the same final label within {stnd_labels}**. 
+
+    FORMAT 
+    7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
+
+    OUTPUT
+    8) Produce only one markdown table that uses the following constant values:
+        - Ticker: {ticker}\n"
+        - Quarter: {quarter}\n"
+        - Units: {units}\n"
+        - Currency: {currency}\n"
+        - Category: {category}\n"
+
+    AUDIT
+    9) Provide a brief explanation in a second markdown table that begins with '### Explanation' of how the labels were normalized and how the total loan amount calculated.
+    The explanation should be less than 120 words."""
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     # "CFG": cfg_prompt,
@@ -366,3 +383,42 @@ def md_table_to_rows(md_table: str):
         )
 
     return rows
+
+def normalize_label(label: str) -> str:
+    k = re.sub(r"\s+", " ", label.strip()).casefold()
+
+    if not hasattr(normalize_label, "_syn"):
+        normalize_label._syn = {k.casefold(): v for k, v in Synonyms.items()}
+    mapped = normalize_label._syn.get(k, label)
+
+    return mapped
+
+def aggregate_standardized(rows):
+    if not rows:
+        return rows
+
+    agg = defaultdict(float)
+    meta = {k: v for k, v in rows[0].items() if k not in ("Line_Item_Name", "Value")}
+
+    for r in rows:
+        name = str(r.get("Line_Item_Name", "")).strip()
+        if not name or name.lower() == "total cre":
+            continue
+        normalized = normalize_label(name)
+
+        if normalized not in Standardized_Labels:
+            continue
+        val = r.get("Value") or 0
+        try:
+            val = float(val)
+        except Exception:
+            val = 0
+        agg[normalized] += val
+
+    out = []
+    for label, val in agg.items():
+        out.append({**meta, "Line_Item_Name": label, "Value": int(val)})  # truncate
+
+    total = int(sum(r["Value"] for r in out))
+    out.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
+    return out
