@@ -11,16 +11,18 @@ from generic_prompt_cre import generic_prompt, normalize_label, Standardized_Lab
 getcontext().prec = 28
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=60.0)
 
 ############ Extract Data into Markdown Table ############
 def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> tuple[str, str]:
+    tmp_path = None
     
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
-        image_file.save(tmp.name)
-
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+            tmp_path = tmp.name
+        image_file.save(tmp_path)
         try:
-            with Image.open(tmp.name) as img:
+            with Image.open(tmp_path) as img:
                 w, h = img.size
 
                 if w > 0 and h > 0:
@@ -32,50 +34,54 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
                         resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
                         new_size = (int(w * scale), int(h * scale))
                         img = img.resize(new_size, resample=resample)
-                img.save(tmp.name, format="PNG", optimize=True)
+                img.save(tmp_path, format="PNG", optimize=True)
         except Exception:
-            pass 
+            pass
 
-        with open(tmp.name, "rb") as f:
-            data = f.read()
-        image_b64 = base64.b64encode(data).decode("utf-8")
-    
-    try:
-        os.unlink(tmp.name)
-    except Exception:
-        pass
+        with open(tmp_path, "rb") as f:
+            image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    ticker_up = ticker.upper()
-    prompt_builder = TICKER_PROMPT_MAP.get(ticker_up, generic_prompt)
-    instruction = prompt_builder(ticker_up, quarter, units, currency, category)
+        ticker_up = ticker.upper()
+        prompt_builder = TICKER_PROMPT_MAP.get(ticker_up, generic_prompt)
+        instruction = prompt_builder(ticker_up, quarter, units, currency, category)
 
-    resp = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": instruction},
+        try:
+            resp = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
                     {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:image/png;base64,{image_b64}", "detail": "high"},
-                    },
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": instruction},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/png;base64,{image_b64}", "detail": "high"},
+                            },
+                        ],
+                    }
                 ],
-            }
-        ],
-    )
+                timeout=60.0,
+            )
+            raw = (resp.choices[0].message.content or "").strip()
+        except Exception:
+            return "", "### Explanation\nLLM request failed or timed out."
 
-    raw = resp.choices[0].message.content
+        parts = re.split(r'^#+\s*Explanation\b', raw, flags=re.I|re.M) 
 
-    parts = re.split(r'^#+\s*Explanation\b', raw, flags=re.I|re.M) 
-    
-    if len(parts) == 1:
-        parts.append("LLM does not have an explanation.")
+        if len(parts) == 1:
+            parts.append("LLM does not have an explanation.")
 
-    md_table = parts[0].strip()
-    explanation = parts[1].strip()
+        md_table = parts[0].strip()
+        explanation = parts[1].strip()
 
-    return md_table, explanation
+        return md_table, explanation
+
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
 
 ############ Convert Markdown Table into Python Dictionary List ############
 def md_table_to_rows(md_table: str):
