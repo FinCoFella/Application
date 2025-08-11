@@ -317,16 +317,33 @@ PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
 def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> tuple[str, str]:
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+        image_file.save(tmp.name)
+
         try:
             with Image.open(tmp.name) as img:
                 w, h = img.size
-                img = img.resize((int(w*2), int(h*2)), Image.LANCZOS)
-                img.save(tmp.name, format="PNG", optimize=True)
+
+                if w > 0 and h > 0:
+                    try:
+                        resample = Image.Resampling.LANCZOS
+                    except AttributeError:
+                        resample = Image.LANCZOS
+
+                    img = img.resize((int(w*2), int(h*2)), resample=resample)
+                    img.save(tmp.name, format="PNG", optimize=True)
+
         except Exception:
             pass 
-        
+
         with open(tmp.name, "rb") as f:
-            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+            data = f.read()
+
+        image_b64 = base64.b64encode(data).decode("utf-8")
+    
+    try:
+        os.unlink(tmp.name)
+    except Exception:
+        pass
 
     ticker_up = ticker.upper()
     prompt_builder = PROMPT_MAP.get(ticker_up, generic_prompt)
