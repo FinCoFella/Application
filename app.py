@@ -99,7 +99,7 @@ def analyze_quarter_pdf_route():
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
 
-    ##### User CRE Values Override Route #####
+    ##### Override Route #####
     if request.method == "POST" and request.form.get("override") == "1":
         ticker   = request.form["ticker"]
         quarter  = request.form["quarter"]
@@ -123,7 +123,7 @@ def standardize_cre():
             explanation=None,
         )
     
-    ##### User PNG Upload Route for LLM Analysis #####
+    ##### PNG Upload for LLM Analysis Route #####
     elif request.method == "POST":
         image    = request.files.get("image")
         ticker   = request.form.get("ticker", "").strip().upper()
