@@ -1,0 +1,141 @@
+import re
+
+Standardized_Labels = ["Multi-family", "Industrial", "Lodging", "Office", "Retail", "Mixed-use", "Residential", "Other"]
+
+Synonyms = { 
+    "Multifamily": "Multi-family", 
+    "Apartments": "Multi-family",
+    "Apartments & Residential": "Multi-family",
+    "Multi Family": "Multi-family",
+    "Multi-family rental": 'Multi-family',
+
+    "Industrial / Warehouse": "Industrial",
+    "Industrial/warehouse": "Industrial",
+    "Industrial/Warehouse": "Industrial",
+    "Warehouse/Industrial": "Industrial",
+    "Warehouse": "Industrial",
+
+    "Hotel": "Lodging",
+    "Hotels": "Lodging",
+    "Hotel/Motel": "Lodging",
+    "Hotel/motel": "Lodging",
+    "Hospitality": "Lodging",
+
+    "Mixed use": "Mixed-use",
+    "Mixed use properties": "Mixed-use",
+    "Multi use": "Mixed-use",
+
+    "Shopping Centers": "Retail",
+    "Shopping center": "Retail",
+    "Retail (excl shopping center)": "Retail",
+
+    "Medical Office": "Office",
+    "General Office": "Office",
+    "Office Building": "Office",
+    "Healthcare Office": "Office",
+    "Other general office": "Office",
+    "Credit tenant lease and life sciences": "Office",
+
+    "Single Family / Land Development": "Residential",
+    "Residential Land": "Residential",
+    "Residential Properties": "Residential",
+    "Residential for Sale": "Residential",
+    "Residential (Housing)": "Residential",
+    "Res. Homebuilders": "Residential",
+
+    "Land Carry": "Other",
+    "Other Income Producing Properties": "Other",
+    "Services and Non Income Producing": "Other",
+    "Land & Residential": "Other",
+    "Senior Housing": "Other",
+    "Seniors Housing": "Other",
+    "Diversified": "Other",
+    "Healthcare": "Other",
+    "Healthcare ": "Other",
+    "Health care": "Other",
+    "Health Care": "Other",
+    "Health-care": "Other",
+    "Commercial Land": "Other",
+    "Construction and Land": "Other",
+    "Data Center": "Other",
+    "Institutional": "Other",
+    "Self Storage": "Other",
+    "Mobile home park": "Other",
+    "Skilled Nursing": "Other",
+    "Specialty & Other": "Other",
+    "Student Housing": "Other",
+    "Self-Storage": "Other",
+    "Storage facility": "Other",
+    "Development & Land": "Other",
+    "Other Investment Properties": "Other",
+    "Co-op": "Other"
+}
+
+def generic_prompt(ticker, quarter, units, currency, category) -> str:
+    syn_labels = "\n".join(f" - '{k}' → '{v}'" for k, v in Synonyms.items())
+    stnd_labels = ", ".join(Standardized_Labels)
+
+    return f""" 
+    Extract CRE exposure from one image.
+
+    OUTPUT TABLE:
+    - Return one markdown table with the following columns in this exact order:
+        | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
+    - The last row in the 'Loan Amount' column should be the sum of all rows.
+
+    OUTPUT AUDIT
+    - After the table, add an '### Explanation' section that begins with a JSON code block:
+    ```json
+            {{ "total_mn": <number>,
+            "slices": [ {{ "label":"...", "percent": <number>, "amount_mn": <number> }}, ... ],
+            "percent_sum": <number>
+            }}
+
+    ```
+    - The JSON must list every slice printed next to the chart.
+    - Compute percent_sum as the sum of the listed percentages. Do not round it up to 100.
+    - If the sum does not equal 100 by more than ± 0.5, re-read ambiguous labels and minimally correct to reach 100.
+
+    EXTRACT
+    1) Read the total dollar amount in the center of the pie chart, and convert it into millions (e.g.'0.0' to 0,000).
+    2) Then read all property type labels and their corresponding loan amounts from the image, and if the values are percentages, apply the formula below: 
+        - Total dollar amount in millions * (% Slice / 100) = slice amount in millions.
+    3) If the values are in a table, follow these rules:
+        - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
+        - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
+        - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
+
+    CONVERT UNITS
+    4) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
+
+    NORMALIZE LABELS
+    5) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
+    6) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
+
+    AGGREGATE
+    7) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
+
+    FORMAT 
+    8) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
+
+    APPLY USER INPUT
+    9) Produce only one markdown table that uses the following constant values:
+        - Ticker: {ticker}\n"
+        - Quarter: {quarter}\n"
+        - Units: {units}\n"
+        - Currency: {currency}\n"
+        - Category: {category}\n"
+
+    AUDIT
+    10) In the '### Explanation', describe how the labels were normalized and how the total loan amount was calculated.
+    It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words."""
+
+def normalize_label(label: str) -> str:
+    k = re.sub(r"\s+", " ", label.strip()).casefold()
+
+    if not hasattr(normalize_label, "_syn"):
+        normalize_label._syn = {k.casefold(): v for k, v in Synonyms.items()}
+    mapped = normalize_label._syn.get(k, label)
+
+    return mapped
