@@ -240,9 +240,6 @@ Synonyms = {
     "Seniors Housing": "Other",
     "Diversified": "Other",
     "Healthcare": "Other",
-    "Health care": "Other",
-    "Health-care": "Other",
-    "Health Care": "Other",
     "Commercial Land": "Other",
     "Construction and Land": "Other",
     "Data Center": "Other",
@@ -265,15 +262,26 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
 
     return f""" Extract CRE exposure from the image and exactly follow the rules below:
 
-    OBJECTIVE:
+    OUTPUT TABLE:
     - Return one markdown table with the following columns in this exact order:
         | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
     - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
     - The last row in the 'Loan Amount' column should be the sum of all rows.
 
+    OUTPUT AUDIT
+    - After the table, add an '### Explanation' section that begins with a JSON code block:
+    ```json
+            {{ "total_mn": <number>,
+            "slices": [ {{ "label":"...", "percent": <number>, "amount_mn": <number> }}, ... ],
+            "percent_sum": <number>
+            }}
+    ```
+    - The `percent_sum` must be **100**. Re-read ambiguous or small slices and minimally correct to reach 100.
+
     EXTRACT
-    1) Read all property type labels and their corresponding loan amounts from the image, which may be in percentages or dollar amounts.
-    2) If the values are percentages, multiply *each* one by the total dollar amount given in center of the pie chart.
+    1) Read the total dollar amount in the center of the pie chart, which is the total loan amount for all property types.
+    2) Then read all property type labels and their corresponding loan amounts from the image, and if the values are percentages: 
+        - If a slice shows a percentage, multiply *each* one by the total dollar amount given in center of the pie chart.
     3) If the values are in a table, follow these rules:
         - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
         - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
@@ -286,12 +294,12 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
     5) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
 
     AGGREGATE
-    6) After normalizing the property type lables, **Sum the amounts that map to the same final label within {stnd_labels}**. 
+    6) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
 
     FORMAT 
     7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
 
-    OUTPUT
+    APPLY USER INPUT
     8) Produce only one markdown table that uses the following constant values:
         - Ticker: {ticker}\n"
         - Quarter: {quarter}\n"
@@ -300,8 +308,8 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
         - Category: {category}\n"
 
     AUDIT
-    9) Provide a brief explanation in a second markdown table that begins with '### Explanation' of how the labels were normalized and how the total loan amount calculated.
-    The explanation should be less than 120 words."""
+    9) In the '### Explanation', describe how the labels were normalized and how the total loan amount was calculated.
+    It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words."""
 
 PROMPT_MAP: Dict[str, Callable[[str, str, str, str, str],str]] = {
     # "CFG": cfg_prompt,
