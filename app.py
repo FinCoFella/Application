@@ -178,7 +178,6 @@ def standardize_cre():
         return render_template(
             "standardize_cre.html",
             rows=rows,
-            explanation=explanation_html,
             override_rows=None,
             ticker=ticker,
             quarter=quarter,
@@ -187,7 +186,7 @@ def standardize_cre():
             category=category,
             chart_type=chart_type,
             orig_rows_json=json.dumps(rows),
-            explanation=explanation,
+            explanation=explanation_html,
         )
     
     return render_template("standardize_cre.html", chart_type="percentage_pie")
