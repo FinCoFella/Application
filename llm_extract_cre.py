@@ -192,3 +192,48 @@ def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, curr
     rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total_row})
 
     return rows
+
+def rows_from_table_json_precise(explanation_text, ticker, quarter, units, currency, category):
+    m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
+
+    if not m:
+        return None
+    try:
+        data = json.loads(m.group(1))
+    except Exception:
+        return None
+
+    if (data or {}).get("mode") != "table":
+        return None
+
+    table_rows = data.get("rows") or []
+    unit_detected = (data.get("unit_detected") or "").strip().upper()
+
+    from decimal import Decimal, ROUND_DOWN
+    agg = defaultdict(Decimal)
+
+    for r in table_rows:
+        raw_label = str(r.get("label", "")).strip()
+        
+        amt = r.get("amount_mn")
+        if amt is None:
+            amt = r.get("amount")
+            if amt is None:
+                continue
+            
+            if unit_detected in ("B", "BN", "BILLION"):
+                amt = Decimal(str(amt)) * Decimal(1000)
+            else:
+                amt = Decimal(str(amt))
+        else:
+            amt = Decimal(str(amt))
+
+        norm = normalize_label(raw_label)
+        if norm in Standardized_Labels:
+            
+            agg[norm] += amt.quantize(Decimal("1"), rounding=ROUND_DOWN)
+
+    meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
+    rows = [{**meta, "Line_Item_Name": k, "Value": int(v)} for k, v in agg.items()]
+    rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": int(sum(r["Value"] for r in rows))})
+    return rows

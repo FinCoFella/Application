@@ -4,14 +4,14 @@ import os, urllib.parse, json
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from llm_extract_cre import extract_cre_table, md_table_to_rows, aggregate_standardized, rows_from_slices_json_precise
+from llm_extract_cre import extract_cre_table, md_table_to_rows, aggregate_standardized, rows_from_slices_json_precise, rows_from_table_json_precise
 from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_ticker_reit
 from load_bank_db import load_ticker_bank
 from llm_analyze_chart import analyze_ratio as run_ratio_analysis
 from llm_analyze_doc import analyze_quarter_doc
-from bank_stnd_cre import override_values, build_rows_from_llm
+from bank_stnd_cre import override_values
 
 load_dotenv()
 
@@ -161,7 +161,12 @@ def standardize_cre():
         md_table, explanation = extract_cre_table(image, ticker, quarter, units, currency, category, chart_type=chart_type)
         rows = md_table_to_rows(md_table)
 
-        rebuilt = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
+        rebuilt = None
+        if chart_type == "percentage_pie":
+            rebuilt = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
+        elif chart_type == "value_table":
+            rebuilt = rows_from_table_json_precise(explanation, ticker, quarter, units, currency, category)
+
         if rebuilt:
             rows = rebuilt
         
