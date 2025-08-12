@@ -18,7 +18,7 @@
   <select class="ticker-input" name="chart_type" required>
     {% set ct = chart_type|default('percentage_pie') %}
     <option value="percentage_pie" {{ 'selected="selected"' if ct == 'percentage_pie' else '' }}>
-      Percentage Pie Chart
+      Pie Chart %
     </option>
     
     <option value="value_table" {{ 'selected="selected"' if ct == 'value_table' else '' }}>
