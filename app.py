@@ -159,19 +159,31 @@ def standardize_cre():
 
         if not image or image.filename == "" or not image.filename.lower().endswith(".png"):
             error_msg = "Please upload a valid PNG file."
-            return render_template("standardize_cre.html", error_msg=error_msg)
+            return render_template("standardize_cre.html", error_msg=error_msg, chart_type=chart_type)
 
         md_table, explanation = extract_cre_table(image, ticker, quarter, units, currency, category, chart_type=chart_type)
         explanation_html = format_exp_for_html(explanation)
 
-        rebuilt = None
-        if chart_type == "percentage_pie":
-            rebuilt = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
-        elif chart_type == "value_table":
-            rebuilt = rows_from_table_json_precise(explanation, ticker, quarter, units, currency, category)
+        if chart_type == "value_table":
+            rows = rows_from_table_json_precise(explanation, ticker, quarter, units, currency, category)
+        elif chart_type == "percentage_pie":
+            rows = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
 
-        if rebuilt:
-            rows = rebuilt
+        if not rows:
+            rows = md_table_to_rows(md_table)
+        
+        if not rows:
+            return render_template(
+                "standardize_cre.html",
+                error_msg="Could not extract any rows from the image.",
+                ticker=ticker, 
+                quarter=quarter, 
+                units=units,
+                currency=currency, 
+                category=category, 
+                chart_type=chart_type,
+                explanation=explanation_html,
+            )
         
         rows = aggregate_standardized(rows)
 

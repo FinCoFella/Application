@@ -194,6 +194,9 @@ def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, curr
     return rows
 
 def rows_from_table_json_precise(explanation_text, ticker, quarter, units, currency, category):
+    if not explanation_text:
+        return None
+    
     m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
 
     if not m:
@@ -203,37 +206,55 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
     except Exception:
         return None
 
-    if (data or {}).get("mode") != "table":
+    if str((data or {}).get("mode", "")).lower() != "table":
         return None
-
+    
     table_rows = data.get("rows") or []
-    unit_detected = (data.get("unit_detected") or "").strip().upper()
+    unit_detected = str(data.get("unit_detected") or "").strip().upper()
+
+    BILLION_TOKENS = {
+        "B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"
+    }
 
     from decimal import Decimal, ROUND_DOWN
-    agg = defaultdict(Decimal)
+    agg = defaultdict(lambda: Decimal(0))
+
+    def to_decimal(x):
+        if x is None:
+            return None
+        s = str(x).strip()
+        s = s.replace("US$", "").replace("$", "").replace(",", "")
+        if s.startswith("(") and s.endswith(")"):
+            s = "-" + s[1:-1]
+        try:
+            return Decimal(s)
+        except Exception:
+            return None
 
     for r in table_rows:
         raw_label = str(r.get("label", "")).strip()
+        if not raw_label or raw_label.lower() in {"total", "total cre"}:
+            continue
         
-        amt = r.get("amount_mn")
-        if amt is None:
-            amt = r.get("amount")
-            if amt is None:
+        amt_dec = to_decimal(r.get("amount_mn"))
+        if amt_dec is None:
+            amt_dec = to_decimal(r.get("amount"))
+            if amt_dec is None:
                 continue
-            
-            if unit_detected in ("B", "BN", "BILLION"):
-                amt = Decimal(str(amt)) * Decimal(1000)
-            else:
-                amt = Decimal(str(amt))
-        else:
-            amt = Decimal(str(amt))
+            if unit_detected in BILLION_TOKENS:
+                amt_dec *= Decimal(1000)
 
         norm = normalize_label(raw_label)
         if norm in Standardized_Labels:
-            
-            agg[norm] += amt.quantize(Decimal("1"), rounding=ROUND_DOWN)
+            agg[norm] += amt_dec
+
+    if not agg:
+        return None
 
     meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
-    rows = [{**meta, "Line_Item_Name": k, "Value": int(v)} for k, v in agg.items()]
-    rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": int(sum(r["Value"] for r in rows))})
+    rows = [{**meta, "Line_Item_Name": k, "Value": int(v.quantize(Decimal("1"), rounding=ROUND_DOWN))}
+        for k, v in agg.items()]
+    total = int(sum(r["Value"] for r in rows))
+    rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
+    
     return rows
