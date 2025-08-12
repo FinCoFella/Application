@@ -149,6 +149,11 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     ```
     - The JSON code block must list every property type row extracted from the table.
 
+    EXPLANATION 
+    - After the JSON closing ```, write a paragraph in <200 words explaining:
+        - Describe how the labels were normalized using the mapping: {syn_labels}.
+        - Describe how the 'Other' property label was normalized.
+
     EXTRACT
     1) Read each property type row and its corresponding numeric loan amount value.
     2) If the values are in a table, follow these rules:
@@ -176,11 +181,7 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
         - Units: {units}\n"
         - Currency: {currency}\n"
         - Category: {category}\n"
-
-    AUDIT
-    9) In the '### Explanation', describe how the labels were normalized and how the total loan amount was aggregated.
-    It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words.
-    """
+"""
 
 def normalize_label(label: str) -> str:
     a = re.sub(r"\s+", " ", label.strip()).casefold()
