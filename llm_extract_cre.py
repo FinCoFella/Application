@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
-from generic_prompt_cre import generic_prompt, normalize_label, Standardized_Labels
+from generic_prompt_cre import generic_prompt_pie_percent, normalize_label, Standardized_Labels
 
 getcontext().prec = 28
 
@@ -42,7 +42,7 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
             image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
         ticker_up = ticker.upper()
-        prompt_builder = TICKER_PROMPT_MAP.get(ticker_up, generic_prompt)
+        prompt_builder = TICKER_PROMPT_MAP.get(ticker_up, generic_prompt_pie_percent)
         instruction = prompt_builder(ticker_up, quarter, units, currency, category)
 
         try:

@@ -71,8 +71,8 @@ Synonyms = {
     "Co-op": "Other"
 }
 
-def generic_prompt(ticker, quarter, units, currency, category) -> str:
-    syn_labels = "\n".join(f" - '{k}' → '{v}'" for k, v in Synonyms.items())
+def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> str:
+    syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
     stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
@@ -91,7 +91,6 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
             "slices": [ {{ "label":"...", "percent": <number>, "amount_mn": <number> }}, ... ],
             "percent_sum": <number>
             }}
-
     ```
     - The JSON must list every slice printed next to the chart.
     - Compute percent_sum as the sum of the listed percentages. Do not round it up to 100.
@@ -101,26 +100,22 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
     1) Read the total dollar amount in the center of the pie chart, and convert it into millions (e.g.'0.0' to 0,000).
     2) Then read all property type labels and their corresponding loan amounts from the image, and if the values are percentages, apply the formula below: 
         - Total dollar amount in millions * (% Slice / 100) = slice amount in millions.
-    3) If the values are in a table, follow these rules:
-        - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
-        - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
-        - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
 
     CONVERT UNITS
-    4) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
+    3) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
 
     NORMALIZE LABELS
-    5) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
-    6) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
+    4) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
+    5) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
 
     AGGREGATE
-    7) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
+    6) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
 
     FORMAT 
-    8) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
+    7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
 
     APPLY USER INPUT
-    9) Produce only one markdown table that uses the following constant values:
+    8) Produce only one markdown table that uses the following constant values:
         - Ticker: {ticker}\n"
         - Quarter: {quarter}\n"
         - Units: {units}\n"
@@ -128,14 +123,71 @@ def generic_prompt(ticker, quarter, units, currency, category) -> str:
         - Category: {category}\n"
 
     AUDIT
-    10) In the '### Explanation', describe how the labels were normalized and how the total loan amount was calculated.
+    9) In the '### Explanation', describe how the labels were normalized and how the total loan amount was calculated.
     It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words."""
 
+def generic_prompt_value_table(ticker, quarter, units, currency, category) -> str:
+    syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
+    stnd_labels = ", ".join(Standardized_Labels)
+
+    return f"""
+    Extract CRE exposure from a tabular image (no pie math).
+
+    OUTPUT TABLE:
+    - Return one markdown table with columns in this exact order:
+        | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
+    - The last row in the 'Loan Amount' column should be the sum of all rows.
+
+    OUTPUT AUDIT
+    - After the table, add '### Explanation' that begins with a JSON code block:
+    ```json
+        {{ "mode": "table",
+        "rows": [ {{ "label":"Office", "amount_mn": <number> }}, ... ],
+        "unit_detected": "B"|"M"|null
+        }}
+    ```
+    - The JSON code block must list every property type row extracted from the table.
+
+    EXTRACT
+    1) Read each property type row and its corresponding numeric loan amount value.
+    2) If the values are in a table, follow these rules:
+        - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
+        - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
+        - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
+
+    CONVERT UNITS
+    3) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
+
+    NORMALIZE LABELS
+    4) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
+    5) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
+
+    AGGREGATE
+    6) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
+
+    FORMAT 
+    7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
+
+    APPLY USER INPUT
+    8) Produce only one markdown table that uses the following constant values:
+        - Ticker: {ticker}\n"
+        - Quarter: {quarter}\n"
+        - Units: {units}\n"
+        - Currency: {currency}\n"
+        - Category: {category}\n"
+
+    AUDIT
+    9) In the '### Explanation', describe how the labels were normalized and how the total loan amount was aggregated.
+    It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words.
+    """
+
 def normalize_label(label: str) -> str:
-    k = re.sub(r"\s+", " ", label.strip()).casefold()
+    a = re.sub(r"\s+", " ", label.strip()).casefold()
 
     if not hasattr(normalize_label, "_syn"):
-        normalize_label._syn = {k.casefold(): v for k, v in Synonyms.items()}
-    mapped = normalize_label._syn.get(k, label)
+        normalize_label._syn = {a.casefold(): b for a, b in Synonyms.items()}
+        
+    mapped = normalize_label._syn.get(a, label)
 
     return mapped

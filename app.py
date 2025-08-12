@@ -107,7 +107,22 @@ def standardize_cre():
         currency = request.form["currency"]
         category = request.form["category"]
 
-        orig_rows = json.loads(request.form["orig_rows_json"])
+        raw = request.form.get("orig_rows_json", "")
+
+        try:
+            orig_rows = json.loads(raw)
+            if isinstance(orig_rows, str):
+                orig_rows = json.loads(orig_rows)
+            if not isinstance(orig_rows, list):
+                raise ValueError("orig_rows_json must be a JSON array")
+        except Exception:
+            return render_template(
+                "standardize_cre.html",
+                error_msg="Invalid original rows payload.",
+                ticker=ticker, quarter=quarter, units=units,
+                currency=currency, category=category,
+            )
+
         override_rows = override_values(orig_rows, request.form)
 
         return render_template(
