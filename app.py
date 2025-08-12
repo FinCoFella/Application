@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from sqlalchemy import create_engine
-import os, urllib.parse, json
+import os, re, urllib.parse, json
 from dotenv import load_dotenv
 from openai import OpenAI
+from markupsafe import Markup, escape
 
 from llm_extract_cre import extract_cre_table, md_table_to_rows, aggregate_standardized, rows_from_slices_json_precise, rows_from_table_json_precise
 from charts import line_chart_png, pie_chart_png
@@ -21,6 +22,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
+
+JSON_FENCE = re.compile(r"```json\s*(\{.*?\})\s*```", re.S | re.I)
 
 app = Flask(__name__)
 
@@ -159,7 +162,7 @@ def standardize_cre():
             return render_template("standardize_cre.html", error_msg=error_msg)
 
         md_table, explanation = extract_cre_table(image, ticker, quarter, units, currency, category, chart_type=chart_type)
-        rows = md_table_to_rows(md_table)
+        explanation_html = format_exp_for_html(explanation)
 
         rebuilt = None
         if chart_type == "percentage_pie":
@@ -175,6 +178,7 @@ def standardize_cre():
         return render_template(
             "standardize_cre.html",
             rows=rows,
+            explanation=explanation_html,
             override_rows=None,
             ticker=ticker,
             quarter=quarter,
@@ -187,6 +191,32 @@ def standardize_cre():
         )
     
     return render_template("standardize_cre.html", chart_type="percentage_pie")
+
+def format_exp_for_html(md_text: str) -> Markup:
+
+    if not md_text:
+        return Markup("")
+
+    m = JSON_FENCE.search(md_text)
+    if not m:
+        return Markup(f"<div class='explanation-text'>{escape(md_text)}</div>")
+
+    raw_json = m.group(1)
+    pretty = raw_json
+    try:
+        pretty = json.dumps(json.loads(raw_json), indent=2, ensure_ascii=False)
+    except Exception:
+        pretty = raw_json
+
+    before = escape(md_text[:m.start()])
+    after  = escape(md_text[m.end():]).lstrip()
+
+    html = (
+        f"{before}"
+        f"<pre class='code-block'><code>{escape(pretty)}</code></pre>"
+        f"<div class='explanation-text'>{after}</div>"
+    )
+    return Markup(html)
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

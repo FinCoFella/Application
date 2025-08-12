@@ -199,3 +199,18 @@ li:hover .dropdown {
     font-family:'Questrial',sans-serif;
     font-size:14px;
 }
+
+.explanation-box .code-block {
+  white-space: pre;
+  overflow-x: auto;
+  margin: 12px 0 16px;
+  padding: 10px;
+  background: #f6f8fa;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.explanation-box .explanation-text {
+  margin-top: 8px;
+  line-height: 1.4;
+}
