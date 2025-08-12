@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
-from generic_prompt_cre import generic_prompt_pie_percent, normalize_label, Standardized_Labels
+from generic_prompt_cre import generic_prompt_pie_percent, generic_prompt_value_table, normalize_label, Standardized_Labels
 
 getcontext().prec = 28
 
@@ -14,13 +14,15 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=60.0)
 
 ############ Extract Data into Markdown Table ############
-def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str) -> tuple[str, str]:
+def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str, chart_type: str = "percentage_pie") -> tuple[str, str]:
     tmp_path = None
     
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
             tmp_path = tmp.name
+
         image_file.save(tmp_path)
+
         try:
             with Image.open(tmp_path) as img:
                 w, h = img.size
@@ -34,7 +36,9 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
                         resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
                         new_size = (int(w * scale), int(h * scale))
                         img = img.resize(new_size, resample=resample)
+
                 img.save(tmp_path, format="PNG", optimize=True)
+
         except Exception:
             pass
 
@@ -42,8 +46,15 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
             image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
         ticker_up = ticker.upper()
-        prompt_builder = TICKER_PROMPT_MAP.get(ticker_up, generic_prompt_pie_percent)
-        instruction = prompt_builder(ticker_up, quarter, units, currency, category)
+        ticker_builder = TICKER_PROMPT_MAP.get(ticker_up)
+
+        if ticker_builder:
+            instruction = ticker_builder(ticker_up, quarter, units, currency, category)
+        else:
+            if chart_type == "value_table":
+                instruction = generic_prompt_value_table(ticker_up, quarter, units, currency, category)
+            else:
+                instruction = generic_prompt_pie_percent(ticker_up, quarter, units, currency, category)
 
         try:
             resp = client.chat.completions.create(

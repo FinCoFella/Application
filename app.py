@@ -106,6 +106,7 @@ def standardize_cre():
         units    = request.form["units"]
         currency = request.form["currency"]
         category = request.form["category"]
+        chart_type = request.form.get("chart_type", "percentage_pie")
 
         raw = request.form.get("orig_rows_json", "")
 
@@ -119,8 +120,12 @@ def standardize_cre():
             return render_template(
                 "standardize_cre.html",
                 error_msg="Invalid original rows payload.",
-                ticker=ticker, quarter=quarter, units=units,
-                currency=currency, category=category,
+                ticker=ticker, 
+                quarter=quarter, 
+                units=units,
+                currency=currency, 
+                category=category,
+                chart_type=chart_type, 
             )
 
         override_rows = override_values(orig_rows, request.form)
@@ -134,6 +139,7 @@ def standardize_cre():
             units=units,
             currency=currency,
             category=category,
+            chart_type=chart_type, 
             orig_rows_json=json.dumps(orig_rows),
             explanation=None,
         )
@@ -146,12 +152,14 @@ def standardize_cre():
         units    = request.form.get("units", "").strip()
         currency = request.form.get("currency", "").strip()
         category = request.form.get("category", "").strip()
+        chart_type = request.form.get("chart_type", "percentage_pie")
 
         if not image or image.filename == "" or not image.filename.lower().endswith(".png"):
             error_msg = "Please upload a valid PNG file."
             return render_template("standardize_cre.html", error_msg=error_msg)
 
-        rows, explanation = build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category)
+        md_table, explanation = extract_cre_table(image, ticker, quarter, units, currency, category, chart_type=chart_type)
+        rows = md_table_to_rows(md_table)
 
         rebuilt = rows_from_slices_json_precise(explanation, ticker, quarter, units, currency, category)
         if rebuilt:
@@ -168,11 +176,12 @@ def standardize_cre():
             units=units,
             currency=currency,
             category=category,
+            chart_type=chart_type,
             orig_rows_json=json.dumps(rows),
             explanation=explanation,
         )
     
-    return render_template("standardize_cre.html")
+    return render_template("standardize_cre.html", chart_type="percentage_pie")
     
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

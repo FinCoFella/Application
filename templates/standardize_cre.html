@@ -15,6 +15,17 @@
   <input class="ticker-input" name="currency" placeholder="Currency"      value="{{ currency or '' }}" required>
   <input class="ticker-input" name="category" placeholder="Category"      value="{{ category or '' }}" required>
 
+  <select class="ticker-input" name="chart_type" required>
+    {% set ct = chart_type|default('percentage_pie') %}
+    <option value="percentage_pie" {{ 'selected="selected"' if ct == 'percentage_pie' else '' }}>
+      Percentage Pie Chart
+    </option>
+    
+    <option value="value_table" {{ 'selected="selected"' if ct == 'value_table' else '' }}>
+      Value Table
+    </option>
+  </select>
+
   <button class="ticker-button" type="submit">Standardize&nbsp;CRE</button>
 
 </form>
@@ -67,6 +78,7 @@
      <input type="hidden" name="units" value="{{ units }}">
      <input type="hidden" name="currency" value="{{ currency }}">
      <input type="hidden" name="category" value="{{ category }}">
+     <input type="hidden" name="chart_type" value="{{ chart_type or 'percentage_pie' }}">
 
      <textarea name="orig_rows_json" hidden>{{ rows | tojson }}</textarea>
      
