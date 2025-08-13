@@ -78,9 +78,25 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
-    Extract CRE exposure from the pie chart image, and include an '### Explanation' section that begins with a JSON code block containing the following information:
+    Extract CRE exposure from the pie chart image.
 
-    JSON CODE BLOCK
+    MARKDOWN TABLE
+    Return one markdown table in the exact order below with the subsequent constant values:
+    | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+
+    - Ticker: {ticker}\n
+    - Quarter: {quarter}\n
+    - Units: {units}\n
+    - Currency: {currency}\n
+    - Category: {category}\n
+
+    TABLE NOTES
+    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
+    - The last row in the 'Loan Amount' column should be the sum of all rows.
+
+    ### EXPLANATION JSON CODE BLOCK
+    Begin this section with a fenced JSON code block.
+
     ```json
             {{ "total_mn": <number in millions or null>,
             "slices": [ {{ "label":"raw printed label", "percent": <number without % symbol> }}, ... ],
@@ -92,27 +108,11 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     - Do not rename or normalize the labels in the JSON code block.
     - Do not add extra keys in the JSON code block.
     
-    EXTRACTION
+    INSTRUCTIONS
     1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiply by 1000 (e.g.'0.0' to 0,000).
     2) Capture every slice in the pie chart and make sure the sum of the 'percent' values equals 100. Do not massage the 'percent' values to equal 100.
-
-    EXPLANATION
     3) Describe how the labels were normalized in less than 200 words.
-
-    OUTPUT TABLE
-    4) Return one markdown table in the exact order below with the subsequent constant values:
-
-    | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
-    
-    - Ticker: {ticker}\n
-    - Quarter: {quarter}\n
-    - Units: {units}\n
-    - Currency: {currency}\n
-    - Category: {category}\n
-
-    TABLE NOTES
-    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
-    - The last row in the 'Loan Amount' column should be the sum of all rows. """
+    """
 
 ################### INSTRUCTS LLM TO EXTRACT LABELS & VALUES AND PLACES THEM INTO A JSON CODE BLOCK WITH EXPLANATION ###################
 def generic_prompt_value_table(ticker, quarter, units, currency, category) -> str:
