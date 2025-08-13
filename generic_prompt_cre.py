@@ -72,8 +72,10 @@ Synonyms = {
     "Co-op": "Other"
 }
 
-###### INSTRUCTS LLM TO EXTRACT LABELS AND PERCENTAGES VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK ######
+###### INSTRUCTS LLM TO EXTRACT LABELS AND PERCENTAGES VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK, EXPLANATION, AND MARKDOWN TABLE ######
 def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> str:
+    syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
+    stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
     Extract CRE exposure from the pie chart image.
@@ -88,13 +90,14 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     - Currency: {currency}\n
     - Category: {category}\n
 
-    TABLE NOTES
+    NOTES
     - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
     - The last row in the 'Loan Amount' column should be the sum of all rows.
 
-    ### EXPLANATION JSON CODE BLOCK
+    ### EXPLANATION 
     Begin this section with a fenced JSON code block.
 
+    JSON CODE BLOCK
     ```json
             {{ "total_mn": <number in millions or null>,
             "slices": [ {{ "label": <category text only>, "percent": <number without % symbol> }}, ... ],
@@ -109,10 +112,12 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     INSTRUCTIONS
     1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiply by 1000 (e.g.'0.0' to 0,000).
     2) Capture every slice in the pie chart and make sure the sum of the 'percent' values equals 100. Do not massage the 'percent' values to equal 100.
-    3) Describe how the labels were normalized in less than 200 words.
+
+    EXPLANATION
+    3) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
     """
 
-################### INSTRUCTS LLM TO EXTRACT LABELS & VALUES AND PLACES THEM INTO A JSON CODE BLOCK WITH EXPLANATION ###################
+###### INSTRUCTS LLM TO EXTRACT LABELS AND VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK, EXPLANATION, AND MARKDOWN TABLE ######
 def generic_prompt_value_table(ticker, quarter, units, currency, category) -> str:
     syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
     stnd_labels = ", ".join(Standardized_Labels)
@@ -120,52 +125,40 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     return f"""
     Extract CRE exposure from the tabular image.
 
-    OUTPUT TABLE:
-    - Return one markdown table with columns in this exact order:
-        | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+    MARKDOWN TABLE
+    Return one markdown table in the exact order below with the subsequent constant values:
+    | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
+
+    - Ticker: {ticker}\n
+    - Quarter: {quarter}\n
+    - Units: {units}\n
+    - Currency: {currency}\n
+    - Category: {category}\n
+
+    NOTES
     - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
     - The last row in the 'Loan Amount' column should be the sum of all rows.
 
-    OUTPUT AUDIT
-    - After the table, add '### Explanation' that begins with a JSON code block:
+    ### EXPLANATION 
+    Begin this section with a fenced JSON code block.
+
+    JSON CODE BLOCK
     ```json
         {{ "mode": "table",
-        "rows": [ {{ "label":"Office", "amount": <number> }}, ... ],
+        "rows": [ {{ "label": <category text only>, "amount": <number> }}, ... ],
         "unit_detected": "B"|"M"|null
         }}
     ```
+    NOTES
     - The JSON code block must list every property type row extracted from the table.
 
-    EXPLANATION 
-    - After the JSON closing ```, write a paragraph in <200 words explaining:
-        - Describe how the labels were normalized using the mapping: {syn_labels}.
-        - Describe how the 'Other' property label was normalized.
-
     EXTRACT
-    1) Read each property type row and its corresponding numeric loan amount value.
-    2) If the values are in a table, follow these rules:
+    1) Read each property type row and its corresponding loan amount value.
+    2) Apply these rules in some certain cases:
         - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
         - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
         - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
 
-    CONVERT UNITS
-    3) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
-
-    NORMALIZE LABELS
-    4) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
-    5) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
-
-    AGGREGATE
-    6) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
-
-    FORMAT 
-    7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
-
-    APPLY USER INPUT
-    8) Produce only one markdown table that uses the following constant values:
-        - Ticker: {ticker}\n"
-        - Quarter: {quarter}\n"
-        - Units: {units}\n"
-        - Currency: {currency}\n"
-        - Category: {category}\n"
+    EXPLANATION
+    8) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
     """
