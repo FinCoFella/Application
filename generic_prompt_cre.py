@@ -72,61 +72,40 @@ Synonyms = {
     "Co-op": "Other"
 }
 
+###### INSTRUCTS LLM TO EXTRACT LABELS AND PERCENTAGES VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK ######
 def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> str:
     syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
     stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
-    Extract CRE exposure from the pie chart image.
+    Extract CRE exposure from the pie chart image, and include an '### Explanation' section that begins with a JSON code block containing the following information:
 
-    OUTPUT TABLE:
-    - Return one markdown table with the following columns in this exact order:
-        | Ticker | Quarter | CRE Property Type | Loan Amount | Units | Currency | Category |
-    - The last row in the 'CRE Property Type' column should say 'Total CRE'. 
-    - The last row in the 'Loan Amount' column should be the sum of all rows.
-
-    OUTPUT AUDIT
-    - After the table, add an '### Explanation' section that begins with a JSON code block:
     ```json
-            {{ "total_mn": <number>,
-            "slices": [ {{ "label":"...", "percent": <number>, "amount_mn": <number> }}, ... ],
-            "percent_sum": <number>
+            {{ "total_mn": <number in millions or null>,
+            "slices": [ {{ "label":"raw printed label", "percent": <number without % symbol> }}, ... ],
+            "percent_sum": <sum of slice percents, no rounding>,
             }}
     ```
-    - The JSON must list every slice printed next to the chart.
-    - Compute percent_sum as the sum of the listed percentages. Do not round it up to 100.
-    - If the sum does not equal 100 by more than ± 0.5, re-read ambiguous labels and minimally correct to reach 100.
 
-    EXTRACT
-    1) Read the total dollar amount in the center of the pie chart, and convert it into millions (e.g.'0.0' to 0,000).
-    2) Then read all property type labels and their corresponding loan amounts from the image, and if the values are percentages, apply the formula below: 
-        - Total dollar amount in millions * (% Slice / 100) = slice amount in millions.
+    NOTES
+    - Each slice printed next to the chart should contain a 'label' and 'percent' number.
+    - Do not rename or normalize the labels in the JSON code block.
+    - Do not add extra keys in the JSON code block.
+    
+    EXTRACTION
+    1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiply by 1000 (e.g.'0.0' to 0,000).
+    2) Capture every slice in the pie chart and make sure the sum of the 'percent' values equals 100. Do not massage the 'percent' values to equal 100.
 
-    CONVERT UNITS
-    3) If the values are in billions (e.g., '0.0'), multiply the value by 1000 to convert it into millions.
+    EXPLANATION
+    3) Describe how the labels were normalized in less than 200 words. Constants:
+     - Ticker: {ticker}\n
+     - Quarter: {quarter}\n
+     - Units: {units}\n
+     - Currency: {currency}\n
+     - Category: {category}\n
+    """
 
-    NORMALIZE LABELS
-    4) USe the following case-insensitive mapping to normalize the labels {syn_labels} and keep only these final labels: {stnd_labels}.
-    5) Check to make sure 'Other' = sum of *all* slices that map to 'Other' in {syn_labels}.
-
-    AGGREGATE
-    6) After normalizing the property type lables, **sum the amounts that map to the same final label within {stnd_labels}**. 
-
-    FORMAT 
-    7) After aggregating the loan amount values, **truncate the trailing decimal values** in the 'Loan Amount' column to an integer to remove decimals.
-
-    APPLY USER INPUT
-    8) Produce only one markdown table that uses the following constant values:
-        - Ticker: {ticker}\n"
-        - Quarter: {quarter}\n"
-        - Units: {units}\n"
-        - Currency: {currency}\n"
-        - Category: {category}\n"
-
-    AUDIT
-    9) In the '### Explanation', describe how the labels were normalized and how the total loan amount was calculated.
-    It should include an equation used to calculate the 'Other' property type. The explanation should be less than 200 words."""
-
+################### INSTRUCTS LLM TO EXTRACT LABELS & VALUES AND PLACES THEM INTO A JSON CODE BLOCK WITH EXPLANATION ###################
 def generic_prompt_value_table(ticker, quarter, units, currency, category) -> str:
     syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
     stnd_labels = ", ".join(Standardized_Labels)
@@ -183,13 +162,3 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
         - Currency: {currency}\n"
         - Category: {category}\n"
     """
-
-def normalize_label(label: str) -> str:
-    a = re.sub(r"\s+", " ", label.strip()).casefold()
-
-    if not hasattr(normalize_label, "_syn"):
-        normalize_label._syn = {a.casefold(): b for a, b in Synonyms.items()}
-        
-    mapped = normalize_label._syn.get(a, label)
-
-    return mapped

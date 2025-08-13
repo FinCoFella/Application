@@ -6,14 +6,13 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
-from generic_prompt_cre import generic_prompt_pie_percent, generic_prompt_value_table, normalize_label, Standardized_Labels
+from generic_prompt_cre import generic_prompt_pie_percent, generic_prompt_value_table, Synonyms, Standardized_Labels
 
 getcontext().prec = 28
 
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=60.0)
 
-############ Extract Data into Markdown Table ############
 def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str, chart_type: str = "percentage_pie") -> tuple[str, str]:
     tmp_path = None
     
@@ -126,15 +125,17 @@ def md_table_to_rows(md_table: str):
 
     return rows
 
+##### NORMALIZES LABELS AND AGGREGATES THEIR VALUE IF IT MATCHES STANDARDIZED LABELS #####
 def aggregate_standardized(rows):
     if not rows:
         return rows
 
     agg = defaultdict(float)
-    meta = {k: v for k, v in rows[0].items() if k not in ("Line_Item_Name", "Value")}
+    user_input_data = {a: b for a, b in rows[0].items() if a not in ("Line_Item_Name", "Value")}
 
     for r in rows:
         name = str(r.get("Line_Item_Name", "")).strip()
+
         if not name or name.lower() == "total cre":
             continue
         normalized = normalize_label(name)
@@ -142,20 +143,34 @@ def aggregate_standardized(rows):
         if normalized not in Standardized_Labels:
             continue
         val = r.get("Value") or 0
+
         try:
             val = float(val)
         except Exception:
             val = 0
+            
         agg[normalized] += val
 
-    out = []
+    output = []
     for label, val in agg.items():
-        out.append({**meta, "Line_Item_Name": label, "Value": int(val)})
+        output.append({**user_input_data, "Line_Item_Name": label, "Value": int(val)})
 
-    total = int(sum(r["Value"] for r in out))
-    out.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
+    total = int(sum(r["Value"] for r in output))
+    output.append({**user_input_data, "Line_Item_Name": "Total CRE", "Value": total})
 
-    return out
+    return output
+
+##### CLEANS THE EXTRACTED LABEL AND RETURNS A MAPPED LABEL FROM SYNONYMS DICTIONARY #####
+def normalize_label(label: str) -> str:
+    a = re.sub(r"\s+", " ", label.strip()).casefold()
+
+    if not hasattr(normalize_label, "_syn"):
+        normalize_label._syn = {a.casefold(): b for a, b in Synonyms.items()}
+        
+    mapped = normalize_label._syn.get(a, label)
+
+    return mapped
+
 
 def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, currency, category):
     m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
@@ -193,6 +208,7 @@ def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, curr
 
     return rows
 
+##### CLEANS, SCALES, AGGREGATES VALUES BY NORMALIZED LABELS, AND APPENDS TOTAL CRE ROW #####
 def rows_from_table_json_precise(explanation_text, ticker, quarter, units, currency, category):
     if not explanation_text:
         return None
