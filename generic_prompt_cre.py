@@ -99,8 +99,8 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
 
     ```json
             {{ "total_mn": <number in millions or null>,
-            "slices": [ {{ "label":"raw printed label", "percent": <number without % symbol> }}, ... ],
-            "percent_sum": <sum of slice percents, no rounding>,
+            "slices": [ {{ "label": <category text only>, "percent": <number without % symbol> }}, ... ],
+            "percent_sum": <sum of slice percents, no rounding>
             }}
     ```
     NOTES
