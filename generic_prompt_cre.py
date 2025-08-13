@@ -140,7 +140,7 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     - The last row in the 'Loan Amount' column should be the sum of all rows.
 
     ### EXPLANATION 
-    Begin this section with a fenced JSON code block.
+    Strictly begin the Explanation section with a fenced JSON code block:
 
     JSON CODE BLOCK
     ```json
@@ -149,7 +149,10 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
         }}
     ```
     NOTES
-    - The JSON code block must list every property type row extracted from the table.
+    - The JSON code block must list every property type that carries a corresponding number in each row from the table image.
+    - The numbers in the JSON code block should be the exact values from the table image (integers or decimals).
+    - Use valid JSON syntax: no trailing commas, no currency symbols, no commas, and no unit suffixes.
+    - Do not rename or normalize the labels and do not include any 'Total' rows in the JSON code block.
 
     EXTRACT
     1) Read each property type row and its corresponding loan amount value.
