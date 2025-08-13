@@ -212,48 +212,73 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
     table_rows = data.get("rows") or []
     unit_detected = str(data.get("unit_detected") or "").strip().upper()
 
-    BILLION_TOKENS = {
-        "B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"
-    }
-
-    from decimal import Decimal, ROUND_DOWN
-    agg = defaultdict(lambda: Decimal(0))
-
     def to_decimal(x):
         if x is None:
             return None
+        
         s = str(x).strip()
         s = s.replace("US$", "").replace("$", "").replace(",", "")
+
         if s.startswith("(") and s.endswith(")"):
             s = "-" + s[1:-1]
         try:
             return Decimal(s)
         except Exception:
             return None
+        
+    parsed = []
+    mn_values = []
+    amt_values = []
 
     for r in table_rows:
-        raw_label = str(r.get("label", "")).strip()
-        if not raw_label or raw_label.lower() in {"total", "total cre"}:
+        label = str(r.get("label", "")).strip()
+        if not label or label.lower() in {"total", "total cre"}:
             continue
-        
-        amt_dec = to_decimal(r.get("amount_mn"))
-        if amt_dec is None:
-            amt_dec = to_decimal(r.get("amount"))
-            if amt_dec is None:
-                continue
-            if unit_detected in BILLION_TOKENS:
-                amt_dec *= Decimal(1000)
 
-        norm = normalize_label(raw_label)
+        v_mn = to_decimal(r.get("amount_mn"))
+        if v_mn is not None:
+            parsed.append({"label": label, "src": "mn", "val": v_mn})
+            mn_values.append(v_mn)
+            continue
+
+        v = to_decimal(r.get("amount"))
+        if v is not None:
+            parsed.append({"label": label, "src": "amt", "val": v})
+            amt_values.append(v)
+
+    if not parsed:
+        return None
+    
+    billions_in_amount_mn = False
+    if mn_values:
+        max_mn = max(mn_values)
+        looks_like_millions = max_mn >= Decimal("1000")
+        if not looks_like_millions:
+            count_lt_100 = sum(1 for v in mn_values if v < Decimal("100"))
+            if count_lt_100 >= max(2, int(0.6 * len(mn_values))):
+                billions_in_amount_mn = True
+
+    BILLION_TOKENS = {"B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"}
+    billions_for_amount = unit_detected in BILLION_TOKENS
+
+    agg = defaultdict(lambda: Decimal(0))
+    for p in parsed:
+        v = p["val"]
+        if p["src"] == "mn" and billions_in_amount_mn:
+            v = v * Decimal(1000)
+        elif p["src"] == "amt" and billions_for_amount:
+            v = v * Decimal(1000)
+
+        norm = normalize_label(p["label"])
         if norm in Standardized_Labels:
-            agg[norm] += amt_dec
+            agg[norm] += v
 
     if not agg:
         return None
 
     meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
-    rows = [{**meta, "Line_Item_Name": k, "Value": int(v.quantize(Decimal("1"), rounding=ROUND_DOWN))}
-        for k, v in agg.items()]
+    rows = [{**meta, "Line_Item_Name": a, "Value": int(b.quantize(Decimal("1"), rounding=ROUND_DOWN))}
+        for a, b in agg.items()]
     total = int(sum(r["Value"] for r in rows))
     rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
     

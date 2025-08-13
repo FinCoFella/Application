@@ -76,7 +76,7 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
-    Extract CRE exposure from one image.
+    Extract CRE exposure from the pie chart image.
 
     OUTPUT TABLE:
     - Return one markdown table with the following columns in this exact order:
@@ -131,7 +131,7 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     stnd_labels = ", ".join(Standardized_Labels)
 
     return f"""
-    Extract CRE exposure from a tabular image (no pie math).
+    Extract CRE exposure from the tabular image.
 
     OUTPUT TABLE:
     - Return one markdown table with columns in this exact order:
@@ -181,7 +181,7 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
         - Units: {units}\n"
         - Currency: {currency}\n"
         - Category: {category}\n"
-"""
+    """
 
 def normalize_label(label: str) -> str:
     a = re.sub(r"\s+", " ", label.strip()).casefold()
