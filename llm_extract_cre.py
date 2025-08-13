@@ -171,7 +171,6 @@ def normalize_label(label: str) -> str:
 
     return mapped
 
-
 def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, currency, category):
     m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
 
@@ -222,13 +221,9 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
     except Exception:
         return None
 
-    if str((data or {}).get("mode", "")).lower() != "table":
+    rows_json = data.get("rows") or []
+    if not isinstance(rows_json, list) or not rows_json:
         return None
-    
-    table_rows = data.get("rows") or []
-    unit_detected = str(data.get("unit_detected") or "").strip().upper()
-
-    BILLION_TOKENS = {"B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"}
 
     def to_decimal(x):
         if x is None:
@@ -244,10 +239,10 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
         except Exception:
             return None
         
-    parsed_values = []
     label_values = []
+    values = []
 
-    for r in table_rows:
+    for r in rows_json:
         label = str(r.get("label", "")).strip()
         if not label or label.lower() in {"total", "total cre"}:
             continue
@@ -255,24 +250,25 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
         v = to_decimal(r.get("amount"))
         if v is None:
             v = to_decimal(r.get("amount_mn"))
-
         if v is None:
             continue
-        parsed_values.append(v)
-        label_values.append((label, v))
 
-    max_val = max(parsed_values)
-    looks_like_millions = max_val >= Decimal("1000")
-    
-    scale = Decimal(1)
-    if unit_detected in BILLION_TOKENS and not looks_like_millions:
-        scale = Decimal(1000)
-    elif unit_detected == "M":
+        label_values.append((label, v))
+        values.append(v)
+
+    if not values:
+        return None
+
+    millions = any(v >= Decimal("100") for v in values)
+    not_mn   = all(v <  Decimal("100")  for v in values)
+
+    if millions:
         scale = Decimal(1)
+    elif not_mn:
+        scale = Decimal(1000)
     else:
-        count_lt_100 = sum(1 for v in parsed_values if v < Decimal("100"))
-        if not looks_like_millions and count_lt_100 >= max(2, int(0.6 * len(parsed_values))):
-            scale = Decimal(1000)
+        pct_lt_100 = sum(v < Decimal("100") for v in values) / len(values)
+        scale = Decimal(1000) if pct_lt_100 >= 0.80 else Decimal(1)
 
     
     agg = defaultdict(lambda: Decimal(0))
@@ -280,14 +276,18 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
         v_scaled = (v * scale)
         norm = normalize_label(label)
         if norm in Standardized_Labels:
-            agg[norm] += v_scaled
+            agg[norm] += (v * scale)
 
     if not agg:
         return None
 
     meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
-    rows = [{**meta, "Line_Item_Name": a, "Value": int(b.quantize(Decimal("1"), rounding=ROUND_DOWN))}
-        for a, b in agg.items()]
+
+    rows = [
+        {**meta, "Line_Item_Name": a, "Value": int(val.quantize(Decimal("1"), rounding=ROUND_DOWN))}
+        for a, val in agg.items()
+    ]
+
     total = int(sum(r["Value"] for r in rows))
     rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
     
