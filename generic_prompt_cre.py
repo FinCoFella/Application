@@ -143,7 +143,7 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     - After the table, add '### Explanation' that begins with a JSON code block:
     ```json
         {{ "mode": "table",
-        "rows": [ {{ "label":"Office", "amount_mn": <number> }}, ... ],
+        "rows": [ {{ "label":"Office", "amount": <number> }}, ... ],
         "unit_detected": "B"|"M"|null
         }}
     ```

@@ -212,6 +212,8 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
     table_rows = data.get("rows") or []
     unit_detected = str(data.get("unit_detected") or "").strip().upper()
 
+    BILLION_TOKENS = {"B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"}
+
     def to_decimal(x):
         if x is None:
             return None
@@ -226,52 +228,43 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
         except Exception:
             return None
         
-    parsed = []
-    mn_values = []
-    amt_values = []
+    parsed_values = []
+    label_values = []
 
     for r in table_rows:
         label = str(r.get("label", "")).strip()
         if not label or label.lower() in {"total", "total cre"}:
             continue
 
-        v_mn = to_decimal(r.get("amount_mn"))
-        if v_mn is not None:
-            parsed.append({"label": label, "src": "mn", "val": v_mn})
-            mn_values.append(v_mn)
-            continue
-
         v = to_decimal(r.get("amount"))
-        if v is not None:
-            parsed.append({"label": label, "src": "amt", "val": v})
-            amt_values.append(v)
+        if v is None:
+            v = to_decimal(r.get("amount_mn"))
 
-    if not parsed:
-        return None
+        if v is None:
+            continue
+        parsed_values.append(v)
+        label_values.append((label, v))
+
+    max_val = max(parsed_values)
+    looks_like_millions = max_val >= Decimal("1000")
     
-    billions_in_amount_mn = False
-    if mn_values:
-        max_mn = max(mn_values)
-        looks_like_millions = max_mn >= Decimal("1000")
-        if not looks_like_millions:
-            count_lt_100 = sum(1 for v in mn_values if v < Decimal("100"))
-            if count_lt_100 >= max(2, int(0.6 * len(mn_values))):
-                billions_in_amount_mn = True
+    scale = Decimal(1)
+    if unit_detected in BILLION_TOKENS and not looks_like_millions:
+        scale = Decimal(1000)
+    elif unit_detected == "M":
+        scale = Decimal(1)
+    else:
+        count_lt_100 = sum(1 for v in parsed_values if v < Decimal("100"))
+        if not looks_like_millions and count_lt_100 >= max(2, int(0.6 * len(parsed_values))):
+            scale = Decimal(1000)
 
-    BILLION_TOKENS = {"B", "BN", "BILLION", "BILLIONS", "US$B", "USD$B", "USDB", "US$ BN"}
-    billions_for_amount = unit_detected in BILLION_TOKENS
-
+    
     agg = defaultdict(lambda: Decimal(0))
-    for p in parsed:
-        v = p["val"]
-        if p["src"] == "mn" and billions_in_amount_mn:
-            v = v * Decimal(1000)
-        elif p["src"] == "amt" and billions_for_amount:
-            v = v * Decimal(1000)
-
-        norm = normalize_label(p["label"])
+    for label, v in label_values:
+        v_scaled = (v * scale)
+        norm = normalize_label(label)
         if norm in Standardized_Labels:
-            agg[norm] += v
+            agg[norm] += v_scaled
 
     if not agg:
         return None
