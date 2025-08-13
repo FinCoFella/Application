@@ -74,8 +74,6 @@ Synonyms = {
 
 ###### INSTRUCTS LLM TO EXTRACT LABELS AND PERCENTAGES VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK ######
 def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> str:
-    syn_labels = "\n".join(f" - '{a}' → '{b}'" for a, b in Synonyms.items())
-    stnd_labels = ", ".join(Standardized_Labels)
 
     return f""" 
     Extract CRE exposure from the pie chart image.
