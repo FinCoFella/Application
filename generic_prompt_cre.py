@@ -17,6 +17,7 @@ Synonyms = {
 
     "Hotel": "Lodging",
     "Hotels": "Lodging",
+    "Hotel / Motel": "Lodging",
     "Hotel/Motel": "Lodging",
     "Hotel/motel": "Lodging",
     "Hospitality": "Lodging",
