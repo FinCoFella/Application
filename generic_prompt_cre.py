@@ -112,9 +112,10 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     INSTRUCTIONS
     1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiply by 1000 (e.g.'0.0' to 0,000).
     2) Capture every slice in the pie chart and make sure the sum of the 'percent' values equals 100. Do not massage the 'percent' values to equal 100.
+    3) If some labels appear indented under another label, skip over them and only extract the top-level labels.
 
     EXPLANATION
-    3) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
+    4) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
     """
 
 ###### INSTRUCTS LLM TO EXTRACT LABELS AND VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK, EXPLANATION, AND MARKDOWN TABLE ######
