@@ -99,7 +99,8 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
 
     JSON CODE BLOCK
     ```json
-            {{ "total_mn": <number in millions or null>,
+            {{ 
+            "total_mn": <number in millions or null>,
             "slices": [ {{ "label": <category text only>, "percent": <number without % symbol> }}, ... ],
             "percent_sum": <sum of slice percents, no rounding>
             }}
@@ -110,12 +111,13 @@ def generic_prompt_pie_percent(ticker, quarter, units, currency, category) -> st
     - Do not add extra keys in the JSON code block.
     
     INSTRUCTIONS
-    1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiply by 1000 (e.g.'0.0' to 0,000).
+    1) Read the total dollar amount in the center of the pie chart, and convert it into millions by multiplying by 1000 (e.g.'0.0' to 0,000).
     2) Capture every slice in the pie chart and make sure the sum of the 'percent' values equals 100. Do not massage the 'percent' values to equal 100.
-    3) If some labels appear indented under another label, skip over them and only extract the top-level labels.
+    3) Use each slice's percent and the total portfolio amount to calculate the loan amount for that slice. Round down to the nearest whole number. These values should populate the 'Loan Amount' column of the markdown table.
+    4) If some labels appear indented under another label, skip over them and only extract the top-level labels.
 
     EXPLANATION
-    4) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
+    5) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
     """
 
 ###### INSTRUCTS LLM TO EXTRACT LABELS AND VALUES FROM THE INPUT IMAGE AND OUTPUTS A JSON CODE BLOCK, EXPLANATION, AND MARKDOWN TABLE ######
@@ -141,12 +143,12 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     - The last row in the 'Loan Amount' column should be the sum of all rows.
 
     ### EXPLANATION 
-    Strictly begin the Explanation section with a fenced JSON code block:
+    Begin this section with a fenced JSON code block.
 
     JSON CODE BLOCK
     ```json
-        {{ "mode": "table",
-        "rows": [ {{ "label": <category text only>, "amount": <number> }}, ... ],
+        {{
+        "slices": [ {{ "label": <category text only>, "amount": <number> }}, ... ],
         }}
     ```
     NOTES
