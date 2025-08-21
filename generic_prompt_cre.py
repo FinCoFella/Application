@@ -157,14 +157,15 @@ def generic_prompt_value_table(ticker, quarter, units, currency, category) -> st
     - Use valid JSON syntax: no trailing commas, no currency symbols, no commas, and no unit suffixes.
     - Do not rename or normalize the labels and do not include any 'Total' rows in the JSON code block.
 
-    EXTRACT
+    INSTRUCTIONS
     1) Read each property type row and its corresponding loan amount value.
     2) Copy the property type label and the exact loan amount value into the JSON code block.
     3) Apply these rules in some certain cases:
         - If the table contains a 'Credit exposure' and '% Drawn' column, multiply the values from the 'Credit exposure' and '% Drawn" to calculate the loan amount.
         - If the table contains a 'Loans outstanding balance' column, use those values as the loan amounts for each property type label.
         - If the table contains a 'Total' column of amounts by type, use those values as the loan amounts for each property type label.
+    4) Populate the 'Loan Amount' column of the markdown table with the extracted loan amount values for each property type label.
 
     EXPLANATION
-    4) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
+    5) In less than 200 words, describe how the labels were normalized using the {syn_labels} mapping into {stnd_labels}. Mention how the 'Other' property label was normalized.
     """
