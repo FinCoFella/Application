@@ -20,7 +20,6 @@ image_path = "Images/WFC/WFC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-# Adjust prompts for 4Q24 only
 instruction_text = (
     f"Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image. "
     f"Then generate a markdown table with the following columns in this exact order: "

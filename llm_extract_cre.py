@@ -171,6 +171,7 @@ def normalize_label(label: str) -> str:
 
     return mapped
 
+##### CALCULATES LOAN AMOUNT VALUES BEFORE AGGREGATING BY NORMALIZED LABELS, AND APPENDS TOTAL CRE ROW #####
 def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, currency, category):
     m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
 

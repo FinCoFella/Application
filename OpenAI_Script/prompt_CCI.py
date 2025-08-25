@@ -27,7 +27,7 @@ instruction_text = (
     f"Preserve the order of rows and include a final 'Total Unsecured Debt' row.\n"
     f"Append the 'Total Secured Debt' row and its Unsecured Debt number after the 'Total Unsecured Debt' row.\n"
     f"If there is a 'Various' in the 'Maturity' column, rename it to 'Thereafter' and move it before the'Total Unsecured Debt' row.\n"
-    f"Create a 'Total Unsecured Debt' row at the end to be the sume of the 'Total Secured Debt' and 'Total Unsecured Debt' rows.\n"
+    f"Create a 'Total Unsecured Debt' row at the end to be the sum of the 'Total Secured Debt' and 'Total Unsecured Debt' rows.\n"
     f"Then create and return a second markdown table that groups the Unsecured Debt numbers by each unique maturity year, followed by 'Total Secured Debt', 'Total Unsecured Debt' and 'Total Debt'."
 )
 

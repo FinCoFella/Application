@@ -16,16 +16,16 @@ currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
 # Adjust
-image_path = "Images/AVB/AVB_1Q24_Debt.png"
+image_path = "Images/AVB/AVB_4Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
 instruction_text = (
     f"Extract the tabular data from this image in the following format: ."
-    f"| Year |  Secured Debt | Unsecured Debt | \n"
-    f"|------|---------------|--------------- | \n"
-    f"- Preserve the order of rows and include a final 'Total' row.\n"
-    f"Return only the markdown table."
+    f"| Year | Unsecured Debt | \n"
+    f"|------|--------------- | \n"
+    f"Divide the extracted values by 1000 and place the adjusted values into the markdown table.\n"
+    f"Preserve the order of rows and include a final 'Total Unesecured Debt' row.\n"
 )
 
 completion = client.chat.completions.create(
@@ -55,25 +55,31 @@ lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-### Corrections ###
-df.loc[df["Year"] == "", "Secured Debt"] = ""
-df.loc[df["Year"] == "", "Unsecured Debt"] = ""
+manual_overrides: dict[str, int] = {
+    "2025": 825,
+    "2026": 775,
+    "2027": 400,
+    "2028": 850,
+    "2029": 450,
+    "2030": 700,
+    "2031": 600,
+    "2032": 700,
+    "2033": 750,
+    "2034": 400,
+    "Thereafter": 950,
+    "Total Unsecured Debt": 7_400,
+}
 
-df["Secured Debt Clean"] = (df["Secured Debt"].str.replace(r"[\$,]", "", regex=True).str.strip().astype(float))
-df["Unsecured Debt Clean"] = (df["Unsecured Debt"].str.replace(r"[\$,]", "", regex=True).str.strip().astype(float))
-df = df[["Year", "Secured Debt", "Unsecured Debt"]]
+df["Unsecured Debt"] = df["Year"].map(manual_overrides)
+
+Unsecured_debt_df = df.copy()
+Unsecured_debt_df = Unsecured_debt_df[~Unsecured_debt_df["Year"].str.contains("Total", case=False, na=False)]
+Unsecured_debt_df["Unsecured_Num"] = Unsecured_debt_df["Year"].map(manual_overrides).astype(float)
+
+df = df[["Year", "Unsecured Debt"]]
 
 print("\nFinal Adjusted Table:\n")
 print(df.to_markdown(index=False))
-
-Unsecured_debt_df = df.copy()
-Unsecured_debt_df["Unsecured_Num"] = (
-    Unsecured_debt_df["Unsecured Debt"]
-    .str.replace(r"[\$,]", "", regex=True)
-    .astype(float)
-    .div(1_000)
-)
-Unsecured_debt_df = Unsecured_debt_df[~Unsecured_debt_df["Year"].str.contains("Total", case=False)]
 
 def bucket(year):
     if year == "Thereafter":
