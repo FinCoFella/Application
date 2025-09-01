@@ -328,7 +328,7 @@ sql_df["Value"] = sql_df["Value"].astype(float) / 1_000_000
 sql_df["Value"] = sql_df["Value"].round(0).astype("Int64")
 
 print("\n====================== SQL Database Format =====================")
-print(sql_df.to_string(index=False))
+print(sql_df)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 CSV = SCRIPT_DIR / "AVB_10QK_EBITDA.csv"

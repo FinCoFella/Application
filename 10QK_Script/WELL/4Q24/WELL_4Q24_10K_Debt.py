@@ -49,7 +49,7 @@ total_debt = bucket_sums["Unsecured Debt"].sum()
 # Adjust
 debt_buckets_df = pd.DataFrame({
     "Ticker":   "WELL",
-    "Quarter":  "3Q24",
+    "Quarter":  "4Q24",
     "Unsecured Debt": bucket_sums["Bucket"],
     "Amount":   bucket_sums["Unsecured Debt"].astype(int).map("{:,}".format),
     "Unit":     "mn",
@@ -60,7 +60,7 @@ debt_buckets_df = pd.DataFrame({
 # Adjust
 debt_buckets_df.loc[len(debt_buckets_df)] = [
     "WELL",
-    "3Q24",
+    "4Q24",
     "Total Unsecured Debt",
     f"{int(total_debt):,}",
     "mn",

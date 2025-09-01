@@ -253,7 +253,7 @@ def main():
     sql_df.to_csv(export_path, index=False)
 
     print("\n====================== SQL Database Format =====================")
-    print(sql_df.to_string(index=False))
+    print(sql_df)
     print(f"\nSaved SQL EBITDA table to {export_path.resolve()}")
 
 if __name__ == "__main__":
