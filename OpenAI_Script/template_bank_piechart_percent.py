@@ -26,8 +26,10 @@ EXTRACTION STAGE
 STANDARDIZATION STAGE
 2) Read the dollar amount in the center of the pie chart and convert it into millions by multiplying it by 1000. 
 3) Multiply each slice's percentage value with the dollar amount in millions to calculate the loan amount of each property type label. 
-4) Standardize the labels by changing 'Industrial / Warehouse' to 'Industrial', 'Multi-family rental' to 'Multi-family', 'Shopping centers / Retail' to 'Retail', 'Hotel / Motels' to 'Lodging', and 'Multi-use' to 'Mixed-use'. 
-5) Aggregate the loan amount values based on the following eight standardized labels: 'Industrial', 'Lodging', 'Multi-family', 'Office', 'Residential', 'Retail', 'Mixed-use', and 'Other'.
+4) Standardize the labels by changing 'Industrial / Warehouse' to 'Industrial', 'Multi-family rental' to 'Multi-family', 
+'Shopping centers / Retail' to 'Retail', 'Hotel / Motels' to 'Lodging', and 'Multi-use' to 'Mixed-use'. 
+5) Aggregate the loan amount values based on the following eight standardized labels: 'Industrial', 'Lodging', 'Multi-family', 
+'Office', 'Residential', 'Retail', 'Mixed-use', and 'Other'.
 6) Create a new label called 'Total CRE' which calculates the sum of all the loan amount values of the eight standardized labels. 
 
 RAW MARKDOWN STAGE
