@@ -5,7 +5,7 @@ from PIL import Image
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
+from Old_Prompts.ticker_prompts_cre import PROMPT_MAP as TICKER_PROMPT_MAP
 from generic_prompt_cre import generic_prompt_pie_percent, generic_prompt_value_table, Synonyms, Standardized_Labels
 
 getcontext().prec = 28

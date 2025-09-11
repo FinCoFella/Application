@@ -131,6 +131,7 @@ def standardize_cre():
                 chart_type=chart_type, 
             )
 
+        ##### STORES THE OVERRIDE VALUES AFTER USER SUBMITS THE FORM #####
         override_rows = override_values(orig_rows, request.form)
 
         return render_template(
@@ -185,6 +186,7 @@ def standardize_cre():
                 explanation=explanation_html,
             )
         
+        ##### STORES THE LLM EXTRACTED VALUES AFTER POST PROCESSING STAGE #####
         rows = aggregate_standardized(rows)
 
         return render_template(
