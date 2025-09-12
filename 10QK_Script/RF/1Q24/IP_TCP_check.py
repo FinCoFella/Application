@@ -12,7 +12,7 @@ SQL_SSMS_PASS = os.getenv("SQL_SSMS_PASS")
 
 odbc = (
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=172.24.112.1,1433;"
+    "SERVER=172.24.112.1,1433;" ##### LOCAL IP ADDRESS OF SQL SERVER #####
     "DATABASE=US_Banks;"
     f"UID={SQL_SSMS_USER};"
     f"PWD={SQL_SSMS_PASS};"
