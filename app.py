@@ -10,7 +10,7 @@ from charts import line_chart_png, pie_chart_png
 from calc import unsecured_debt_to_ebitda
 from load_reit_db import load_ticker_reit
 from load_bank_db import load_ticker_bank
-from llm_analyze_chart import analyze_ratio as run_ratio_analysis
+from llm_analyze_chart import analyze_unsecured_debt_ratio as debt_ratio_analysis
 from llm_analyze_doc import analyze_quarter_doc
 from bank_stnd_cre import override_values
 
@@ -69,7 +69,7 @@ def analyze_ratio_route():
         if not ticker:
             return {"error": "Missing ticker"}, 400
         
-        result = run_ratio_analysis(ticker, engine_reits, unsecured_debt_to_ebitda, client)
+        result = debt_ratio_analysis(ticker, engine_reits, unsecured_debt_to_ebitda, client)
 
         return jsonify({
                 "analysis": result["analysis"],
