@@ -117,8 +117,9 @@
     </style>
 </head>
 
+<!-- Website Navigation Tabs-->
 <body style="background:#fff;">
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="Primary">
         <div class="navdiv">
             <ul>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -134,16 +135,19 @@
     </nav>
 
     <form class="ticker-form" action="{{ url_for('banks') }}" method="get">
+        <!-- Fields for user input to enter a company ticker symbol and quarter time period -->
         <input class="ticker-input" name="ticker" placeholder="Enter Ticker" value="{{ ticker }}">
         <input class="ticker-input" name="quarter" placeholder="Quarter (e.g. 3Q24)" value="{{ quarter }}">
+        <!-- Action buttons to retrieve data from financial database or generate a pie chart-->
         <button class="ticker-button" style="margin-right: 10px;" type="submit" name="action" value="data">Ticker Data</button>
         <button class="ticker-button" type="submit" name="action" value="pie">Pie Chart</button>
     </form>
 
     {% if ticker and rows is not none and rows|length == 0 %}
-        <p class="error"> No data found for “{{ ticker }}”. </p>
+        <p class="error" role="status" aria-live="polite"> No data found for “{{ ticker }}”. </p>
     {% endif %}
 
+    <!-- Generate results table with with wrapper to allow for horiztonal scrolling -->
     {% if rows %}
     <div style="overflow-x:auto">
         <table>
@@ -159,15 +163,15 @@
                 </tr>
             </thead>
             <tbody>
-                {% for r in rows %}
+                {% for row in rows %}
                 <tr>
-                    <td>{{ r.Ticker }}</td>
-                    <td>{{ r.Quarter }}</td>
-                    <td>{{ r.Line_Item_Name }}</td>
-                    <td>{{ "{:,}".format(r.Value) }}</td>
-                    <td>{{ r.Unit }}</td>
-                    <td>{{ r.Currency }}</td>
-                    <td>{{ r.Category }}</td>
+                    <td>{{ row.Ticker }}</td>
+                    <td>{{ row.Quarter }}</td>
+                    <td>{{ row.Line_Item_Name }}</td>
+                    <td>{{ "{:,}".format(row.Value) }}</td>
+                    <td>{{ row.Unit }}</td>
+                    <td>{{ row.Currency }}</td>
+                    <td>{{ row.Category }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
