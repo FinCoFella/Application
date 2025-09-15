@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
+##### Loads environment variables to grab an OpenAI key value to create an OpenAI authenticated client #####
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
@@ -15,7 +16,7 @@ units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-# Adjust
+
 image_path = "Images/RF/RF_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")

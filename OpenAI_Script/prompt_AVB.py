@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
+
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
@@ -15,7 +16,7 @@ units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-# Adjust
+
 image_path = "Images/AVB/AVB_4Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")

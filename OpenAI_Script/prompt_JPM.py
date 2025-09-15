@@ -15,7 +15,7 @@ units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-# Adjust
+
 image_path = "Images/JPM/JPM_1Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
