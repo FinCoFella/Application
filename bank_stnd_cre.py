@@ -2,6 +2,7 @@ from typing import List, Dict
 
 STANDARDIZED_LABELS = ["Multi-family", "Industrial", "Lodging", "Office", "Retail", "Mixed-use", "Residential", "Other"]
 
+##### Convert a Markdown table into a list of dictionaries for represent the table row #####
 def build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quarter, units, currency, category):
 
     md_table, explanation  = extract_cre_table(image, ticker, quarter, units, currency, category)
@@ -10,6 +11,7 @@ def build_rows_from_llm(md_table_to_rows, extract_cre_table, image, ticker, quar
 
     return rows, explanation
 
+##### Apply user override values entered in the standardized label fields and append a row to calcualate the sum of all values in the prior rows#####
 def override_values(orig_rows: List[Dict], form_dict) -> List[Dict]:
 
     by_label = {r["Line_Item_Name"]: r.copy()
@@ -36,10 +38,10 @@ def override_values(orig_rows: List[Dict], form_dict) -> List[Dict]:
             continue
 
         row = by_label.get(label) or {
-            "Ticker":   form_dict["ticker"],
-            "Quarter":  form_dict["quarter"],
+            "Ticker": form_dict["ticker"],
+            "Quarter": form_dict["quarter"],
             "Line_Item_Name": label,
-            "Unit":     template.get("Unit", ""),
+            "Unit": template.get("Unit", ""),
             "Currency": template.get("Currency", ""),
             "Category": template.get("Category", ""),
         }
@@ -49,11 +51,11 @@ def override_values(orig_rows: List[Dict], form_dict) -> List[Dict]:
         grand_total += value
 
     new_rows.append({
-        "Ticker":   form_dict["ticker"],
-        "Quarter":  form_dict["quarter"],
+        "Ticker": form_dict["ticker"],
+        "Quarter": form_dict["quarter"],
         "Line_Item_Name": "Total CRE",
-        "Value":    round(grand_total, 1),
-        "Unit":     template.get("Unit", ""),
+        "Value": round(grand_total, 1),
+        "Unit": template.get("Unit", ""),
         "Currency": template.get("Currency", ""),
         "Category": template.get("Category", ""),
     })
