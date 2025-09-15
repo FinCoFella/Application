@@ -20,12 +20,12 @@ image_path = "Images/AVB/AVB_4Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract the tabular data from this image in the following format: ."
-    f"| Year | Unsecured Debt | \n"
-    f"|------|--------------- | \n"
-    f"Divide the extracted values by 1000 and place the adjusted values into the markdown table.\n"
-    f"Preserve the order of rows and include a final 'Total Unesecured Debt' row.\n"
+prompt = (f"""
+    Extract the tabular data from this image in the following format: .
+    | Year | Unsecured Debt |
+    |------|--------------- |
+    Divide the extracted values by 1000 and place the adjusted values into the markdown table.
+    Preserve the order of rows and include a final 'Total Unsecured Debt' row."""
 )
 
 completion = client.chat.completions.create(
@@ -35,7 +35,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -73,9 +73,9 @@ manual_overrides: dict[str, int] = {
 
 df["Unsecured Debt"] = df["Year"].map(manual_overrides)
 
-Unsecured_debt_df = df.copy()
-Unsecured_debt_df = Unsecured_debt_df[~Unsecured_debt_df["Year"].str.contains("Total", case=False, na=False)]
-Unsecured_debt_df["Unsecured_Num"] = Unsecured_debt_df["Year"].map(manual_overrides).astype(float)
+unsecured_debt_df = df.copy()
+unsecured_debt_df = unsecured_debt_df[~unsecured_debt_df["Year"].str.contains("Total", case=False, na=False)]
+unsecured_debt_df["Unsecured_Num"] = unsecured_debt_df["Year"].map(manual_overrides).astype(float)
 
 df = df[["Year", "Unsecured Debt"]]
 
@@ -91,12 +91,12 @@ def bucket(year):
             return "Near-term"
         if 2030 <= yr <= 2033:
             return "Medium-term"
-        if yr == 2034: # Adjust
+        if yr == 2034:
             return "Long-term"
     return "Other"
 
-Unsecured_debt_df["Bucket"] = Unsecured_debt_df["Year"].apply(bucket)
-df_work = Unsecured_debt_df.dropna(subset=["Bucket"])
+unsecured_debt_df["Bucket"] = unsecured_debt_df["Year"].apply(bucket)
+df_work = unsecured_debt_df.dropna(subset=["Bucket"])
 bucket_sums = (df_work.groupby("Bucket", sort=False, as_index=False).agg({"Unsecured_Num": "sum"}))
 
 grand_total = bucket_sums["Unsecured_Num"].sum()

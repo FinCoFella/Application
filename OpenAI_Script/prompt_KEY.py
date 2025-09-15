@@ -19,21 +19,21 @@ image_path = "Images/KEY/KEY_3Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract property type labels and loan amounts from the total column in this image. "
-    f"Revise the table by adding 'Medical Office' into the single 'Office' property type label."
-    f"Revise the table by adding 'Diversified' into 'Other', add 'Data Center' into 'Other', add 'Land & Residential' into 'Other', add 'Self Storage' into 'Other', add 'Senior Housing' into 'Other', add 'Skilled Nursing' into 'Other', and add 'Student Housing' into 'Other'."
-    f"Include a final row and label it 'Total CRE' and shows the total loan amount."
-    f"Then generate a markdown table with the following columns in this exact order: "
-    f"Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category. "
-    f"For each row, include:\n"
-    f"- Ticker: {ticker}\n"
-    f"- Quarter: {quarter}\n"
-    f"- Units: {units}\n"
-    f"- Currency: {currency}\n"
-    f"- Category: {category}\n"
-    f"Rename 'Multifamily' to 'Multi-family'."
-    f"Format everything as a clean markdown table."
+prompt = (f"""
+    Extract property type labels and loan amounts from the total column in this image.
+    Revise the table by adding 'Medical Office' into the single 'Office' property type label.
+    Revise the table by adding 'Diversified' into 'Other', add 'Data Center' into 'Other', add 'Land & Residential' into 'Other', add 'Self Storage' into 'Other', add 'Senior Housing' into 'Other', add 'Skilled Nursing' into 'Other', and add 'Student Housing' into 'Other'.
+    Include a final row and label it 'Total CRE' and shows the total loan amount.
+    Then generate a markdown table with the following columns in this exact order:
+    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.
+    For each row, include:\n
+    - Ticker: {ticker}\n
+    - Quarter: {quarter}\n
+    - Units: {units}\n
+    - Currency: {currency}\n
+    - Category: {category}\n
+    Rename 'Multifamily' to 'Multi-family'.
+    Format everything as a clean markdown table."""
 )
 
 completion = client.chat.completions.create(
@@ -43,7 +43,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -64,12 +64,12 @@ rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row 
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
 corrections = {
-    "Multi-family": "8010",    
-    "Office": "1009",
-    "Industrial": "733",
-    "Retail": "880",
-    "Lodging": "234",
-    "Other": "2138"
+    "Multi-family": 8_010,    
+    "Office": 1_009,
+    "Industrial": 733,
+    "Retail": 880,
+    "Lodging": 234,
+    "Other": 2_138
 }
 
 df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"] = (

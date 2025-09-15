@@ -20,21 +20,21 @@ image_path = "Images/WFC/WFC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image. "
-    f"Then generate a markdown table with the following columns in this exact order: "
-    f"Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category. "
-    f"For each row, include:\n"
-    f"- Ticker: {ticker}\n"
-    f"- Quarter: {quarter}\n"
-    f"- Units: {units}\n"
-    f"- Currency: {currency}\n"
-    f"- Category: {category}\n"
-    f"Ensure the final row is labeled 'Total CRE'."
-    f"Combine 'Shopping center' with 'Retail (excl shopping)' into a 'Retail' property type row."
-    f"Combine 'Other' with 'Storage facility', 'Mobile home park', and 'Instiutional' into a single 'Other' property type row."
-    f"Rename 'Apartments' to 'Multi-family', 'Industrial/warehouse' to 'Industrial', 'Hotel/motel' to 'Lodging', and 'Mixed use properties' to 'Mixed-use'."
-    f"Format everything as a clean markdown table."
+prompt = (f"""
+    Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image.
+    Then generate a markdown table with the following columns in this exact order:
+    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.
+    For each row, include:
+    - Ticker: {ticker}
+    - Quarter: {quarter}
+    - Units: {units}
+    - Currency: {currency}
+    - Category: {category}
+    Ensure the final row is labeled 'Total CRE'.
+    Combine 'Shopping center' with 'Retail (excl shopping)' into a 'Retail' property type row.
+    Combine 'Other' with 'Storage facility', 'Mobile home park', and 'Instiutional' into a single 'Other' property type row.
+    Rename 'Apartments' to 'Multi-family', 'Industrial/warehouse' to 'Industrial', 'Hotel/motel' to 'Lodging', and 'Mixed use properties' to 'Mixed-use'.
+    Format everything as a clean markdown table."""
 )
 
 response = client.chat.completions.create(
@@ -44,7 +44,7 @@ response = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -66,10 +66,8 @@ lines = [
 ]
 rows = [re.split(r"\s*\|\s*", ln.strip())[1:-1] for ln in lines]
 
-cre_df = pd.DataFrame(rows[1:], columns=[c.strip() for c in rows[0]])
-
-cre_df["Loan Amount"] = (
-    cre_df["Loan Amount"].str.replace(",", "", regex=False).astype(float))
+df = pd.DataFrame(rows[1:], columns=[c.strip() for c in rows[0]])
+df["Loan Amount"] = (df["Loan Amount"].str.replace(",", "", regex=False).astype(float))
 
 # Adjust
 corrections = {
@@ -83,9 +81,8 @@ corrections = {
     "Total CRE": 136_505
 }
 
-cre_df["Loan Amount"] = (cre_df["CRE Property Type"].map(corrections))
-
-cre_df["Loan Amount"] = (cre_df["Loan Amount"].astype(int).map("{:,}".format))
+df["Loan Amount"] = (df["CRE Property Type"].map(corrections))
+df["Loan Amount"] = (df["Loan Amount"].astype(int).map("{:,}".format))
 
 print("\nOverride Table\n")
-print(cre_df.to_markdown(index=False))
+print(df.to_markdown(index=False))

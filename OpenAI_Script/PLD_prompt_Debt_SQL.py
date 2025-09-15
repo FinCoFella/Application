@@ -7,11 +7,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+##### Load environment variables #####
 SQL_SSMS_USER = os.getenv("SQL_SSMS_USER")
 SQL_SSMS_PASS = os.getenv("SQL_SSMS_PASS")
 
+##### CSV file converted into a Pandas DataFrame #####
 sql_df = pd.read_csv(Path(__file__).with_name("PLD_1Q24_unsecured_debt.csv"))
 
+##### Build OBDC connection string to connect to local SQL Server database #####
 odbc = (
     "DRIVER=ODBC Driver 17 for SQL Server;"
     "SERVER=172.24.112.1,1433;"
@@ -21,12 +24,10 @@ odbc = (
     "TrustServerCertificate=Yes;"
 )
 
-engine = create_engine(
-    f"mssql+pyodbc:///?odbc_connect={urllib.parse.quote_plus(odbc)}",
-    fast_executemany=True
-)
+##### Build SQLAlchemy engine to connect to local SQL server database #####
+engine = create_engine(f"mssql+pyodbc:///?odbc_connect={urllib.parse.quote_plus(odbc)}", fast_executemany=True)
 
-sql_df.to_sql("Financial_Line_Item", engine, schema="dbo",
-          if_exists="append", index=False, method="multi")
+##### Export DataFrame into a relation of a local SQL Server database #####
+sql_df.to_sql("Financial_Line_Item", engine, schema="dbo", if_exists="append", index=False, method="multi")
 
 print("Data successfully exported to SQL.")

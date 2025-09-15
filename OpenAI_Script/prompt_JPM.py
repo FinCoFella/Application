@@ -20,21 +20,21 @@ image_path = "Images/JPM/JPM_1Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract the property type labels, their corresponding values in the 'Credit Exposure' column, and the '% Drawn' column from this image. "
-    f"Then multiply the values in '% Drawn' column with the values in th 'Credit Exposure' column and place the product in a 'Loan Amount' column. " 
-    f"Generate a markdown table with the following columns in this exact order: "
-    f"Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category. "
-    f"For each row, include:\n"
-    f"- Ticker: {ticker}\n"
-    f"- Quarter: {quarter}\n"
-    f"- Units: {units}\n"
-    f"- Currency: {currency}\n"
-    f"- Category: {category}\n"
-    f"Combine 'Other Income Producing Properties' and 'Services and Non Income Producing' into a single 'Other' property type row"
-    f"Ensure the final row is labeled 'Total CRE' and format the numbers in the 'Loan Amount' column to have commas to separate thousands but no decimals."
-    f"Rename 'Multifamily' to 'Multi-family'."
-    f"Format everything as a clean markdown table."
+prompt = (f"""
+    Extract the property type labels, their corresponding values in the 'Credit Exposure' column, and the '% Drawn' column from this image.
+    Then multiply the values in '% Drawn' column with the values in th 'Credit Exposure' column and place the product in a 'Loan Amount' column. 
+    Generate a markdown table with the following columns in this exact order:
+    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.
+    For each row, include:\n
+    - Ticker: {ticker}\n
+    - Quarter: {quarter}\n
+    - Units: {units}\n
+    - Currency: {currency}\n
+    - Category: {category}\n
+    Combine 'Other Income Producing Properties' and 'Services and Non Income Producing' into a single 'Other' property type row
+    Ensure the final row is labeled 'Total CRE' and format the numbers in the 'Loan Amount' column to have commas to separate thousands but no decimals.
+    Rename 'Multifamily' to 'Multi-family'.
+    Format everything as a clean markdown table."""
 )
 
 response = client.chat.completions.create(
@@ -44,7 +44,7 @@ response = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -64,9 +64,9 @@ lines = [
     ln for ln in markdown_string.splitlines()
     if ln.lstrip().startswith("|") and "---" not in ln
 ]
-rows = [re.split(r"\s*\|\s*", ln.strip())[1:-1] for ln in lines]
 
-cre_df = pd.DataFrame(rows[1:], columns=[c.strip() for c in rows[0]])
+rows = [re.split(r"\s*\|\s*", ln.strip())[1:-1] for ln in lines]
+df = pd.DataFrame(rows[1:], columns=[c.strip() for c in rows[0]])
 
 corrections = {
     "Multi-family": 110_530,
@@ -78,14 +78,14 @@ corrections = {
     "Total CRE": 166_920
 }
 
-cre_df["Loan Amount"] = (cre_df["Loan Amount"].str.replace(",", "", regex=False).astype(float))
-cre_df["Loan Amount"] = (cre_df["CRE Property Type"].map(corrections).fillna(cre_df["Loan Amount"]))
+df["Loan Amount"] = (df["Loan Amount"].str.replace(",", "", regex=False).astype(float))
+df["Loan Amount"] = (df["CRE Property Type"].map(corrections).fillna(df["Loan Amount"]))
 
-total = cre_df["CRE Property Type"].str.contains("Total", case=False, na=False)
-cre_df.loc[total, "Loan Amount"] = cre_df.loc[~total, "Loan Amount"].sum()
+total = df["CRE Property Type"].str.contains("Total", case=False, na=False)
+df.loc[total, "Loan Amount"] = df.loc[~total, "Loan Amount"].sum()
 
-cre_df["Loan Amount"] = cre_df["Loan Amount"].round().astype(int).map("{:,}".format)
-cre_df = cre_df[["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Units", "Currency", "Category"]]
+df["Loan Amount"] = df["Loan Amount"].round().astype(int).map("{:,}".format)
+df = df[["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Units", "Currency", "Category"]]
 
 print("\nOverride Table\n")
-print(cre_df.to_markdown(index=False))
+print(df.to_markdown(index=False))

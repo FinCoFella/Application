@@ -21,13 +21,13 @@ image_path = "Images/PLD/PLD_1Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract the values corresponding to the 'Total' and 'Secured Mortgage' columns corresponding to each maturity year from the image. "
-    f"Then for each maturity year, take the difference between the 'Total' and 'Secured Mortgage' columns and place the calculated values into a single column called 'Unsecured Debt'. "
-    f"Then divide the values of the 'Unsecured Debt' column by 1,000 and place them into the following format without any decimals and round to the nearest whole integer: "
-    f"| Year | Unsecured Debt | \n"
-    f"|------|--------------- | \n"
-    f"Preserve the order of each maturity year and include a 'Total Unsecured Debt' row at the end to sum all the maturity years.\n"
+prompt = (f"""
+    Extract the values corresponding to the 'Total' and 'Secured Mortgage' columns corresponding to each maturity year from the image.
+    Then for each maturity year, take the difference between the 'Total' and 'Secured Mortgage' columns and place the calculated values into a single column called 'Unsecured Debt'.
+    Then divide the values of the 'Unsecured Debt' column by 1,000 and place them into the following format without any decimals and round to the nearest whole integer:
+    | Year | Unsecured Debt |
+    |------|--------------- |
+    Preserve the order of each maturity year and include a 'Total Unsecured Debt' row at the end to sum all the maturity years."""
 )
 
 completion = client.chat.completions.create(
@@ -37,7 +37,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -119,8 +119,7 @@ debt_buckets = (bucket_sums.assign(Ticker=ticker,
                                   Quarter=quarter,
                                   Unit=units,
                                   Currency=currency,
-                                  Category=category)
-                          .rename(columns={"Bucket": "Unsecured Debt"}))
+                                  Category=category).rename(columns={"Bucket": "Unsecured Debt"}))
 
 debt_buckets["Amount"] = debt_buckets["Unsecured_Num"].map("{:,}".format)
 debt_buckets = debt_buckets[["Ticker","Quarter","Unsecured Debt","Amount", "Unit","Currency","Category"]]
@@ -134,8 +133,6 @@ debt_buckets.loc[len(debt_buckets)] = {
     "Currency":       currency,
     "Category":       category
 }
-
-tot_unsec = summary_df["Unsecured Debt"].sum()
 
 def rank(label: str) -> int:
     if label.isdigit():

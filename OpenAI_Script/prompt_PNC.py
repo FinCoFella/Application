@@ -19,20 +19,21 @@ image_path = "Images/PNC/PNC_1Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract property type labels and loan amounts from this image. "
-    f"Then generate a markdown table with the following columns in this exact order: "
-    f"Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category. "
-    f"For each row, include:\n"
-    f"- Ticker: {ticker}\n"
-    f"- Quarter: {quarter}\n"
-    f"- Units: {units}\n"
-    f"- Currency: {currency}\n"
-    f"- Category: {category}\n"
-    f"Ensure the final row is labeled 'Total CRE' and shows the total loan amount."
-    f"Combine 'Seniors Housing' into the 'Other' property type row.'"
-    f"Rename 'Industrial / Warehouse' to 'Industrial', 'Multifamily' to 'Multi-family', 'Mixed Use' to 'Mixed-use', and 'Hotel / Motel' to 'Lodging'."
-    f"Format everything as a clean markdown table."
+prompt = (f"""
+    Extract property type labels and loan amounts from this image.
+    Then generate a markdown table with the following columns in this exact order:
+    Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.
+    For each row, include:
+    - Ticker: {ticker}
+    - Quarter: {quarter}
+    - Units: {units}
+    - Currency: {currency}
+    - Category: {category}
+    Ensure the final row is labeled 'Total CRE' and shows the total loan amount.
+    Convert the values from billions (e.g. '0.0' format) to millions by multiplying by 1000.
+    Combine 'Seniors Housing' into the 'Other' property type row.
+    Rename 'Industrial / Warehouse' to 'Industrial', 'Multifamily' to 'Multi-family', 'Mixed Use' to 'Mixed-use', and 'Hotel / Motel' to 'Lodging'.
+    Format everything as a clean markdown table."""
 )
 
 completion = client.chat.completions.create(
@@ -42,7 +43,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -64,13 +65,13 @@ df = pd.DataFrame(rows[1:], columns=rows[0])
 
 # Adjust
 corrections = {
-    "Multi-family": "16.1",    
-    "Office": "7.8",
-    "Industrial": "4.1",
-    "Retail": "2.3",
-    "Lodging": "1.8",
-    "Mixed-use": "0.4",
-    "Other": "3.0"
+    "Multi-family": 16_100,    
+    "Office": 7_800,
+    "Industrial": 4_100,
+    "Retail": 2_300,
+    "Lodging": 1_800,
+    "Mixed-use": 400,
+    "Other": 3_000
 }
 
 df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"] = (

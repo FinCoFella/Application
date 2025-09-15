@@ -21,13 +21,13 @@ image_path = "Images/WELL/WELL_1Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Extract the values in the 'Senior Unsecured Notes' column corresponding to each maturity year. " 
-    f"Note that there are no values in the 2024 maturity year"
-    f"Divide the extracted values by 1000, round to the nearest integer, and place the calculated values into the following format: "
-    f"| Year | Unsecured Debt | \n"
-    f"|------|--------------- | \n"
-    f"Preserve the order of each maturity year and include a 'Total Unsecured Debt' row at the end to sum all the maturity years.\n"
+prompt = (f"""
+    Extract the values in the 'Senior Unsecured Notes' column corresponding to each maturity year.
+    Note that there are no values in the 2024 maturity year.
+    Divide the extracted values by 1000, round to the nearest integer, and place the calculated values into the following format:
+    | Year | Unsecured Debt |
+    |------|--------------- |
+    Preserve the order of each maturity year and include a 'Total Unsecured Debt' row at the end to sum all the maturity years."""
 )
 
 completion = client.chat.completions.create(
@@ -37,7 +37,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -68,13 +68,7 @@ rows = [re.split(r"\s*\|\s*", l.strip())[1:-1]
         if "|" in l and "---" not in l]
 
 df = pd.DataFrame(rows[1:], columns=rows[0])
-
-df["Unsecured_Num"] = (pd.to_numeric(
-    df["Unsecured Debt"]
-        .str.replace(r"[^\d]", "", regex=True),
-    errors="coerce")
-)
-
+df["Unsecured_Num"] = (pd.to_numeric(df["Unsecured Debt"].str.replace(r"[^\d]", "", regex=True),errors="coerce"))
 df = df.dropna(subset=["Unsecured_Num"])
 
 def bucket(y: str) -> str | None:
@@ -120,8 +114,7 @@ debt_buckets = (bucket_sums.assign(Ticker=ticker,
                                   Quarter=quarter,
                                   Unit=units,
                                   Currency=currency,
-                                  Category=category)
-                          .rename(columns={"Bucket": "Unsecured Debt"}))
+                                  Category=category).rename(columns={"Bucket": "Unsecured Debt"}))
 
 debt_buckets["Amount"] = debt_buckets["Unsecured_Num"].map("{:,}".format)
 debt_buckets = debt_buckets[["Ticker","Quarter","Unsecured Debt","Amount", "Unit","Currency","Category"]]
@@ -136,16 +129,14 @@ debt_buckets.loc[len(debt_buckets)] = {
     "Category":       category
 }
 
-tot_unsec = summary_df["Unsecured Debt"].sum()
-
-def _rank(label: str) -> int:
+def rank(label: str) -> int:
     if label.isdigit():
         return int(label)
     if label == "Thereafter":
         return 99_999
     return 1_000_000 
 
-final_table = (pd.concat([summary_df], ignore_index=True).sort_values(by="Year", key=lambda s: s.map(_rank)))
+final_table = summary_df.sort_values(by="Year", key=lambda s: s.map(rank))
 final_table["Unsecured Debt"] = final_table["Unsecured Debt"].map("{:,}".format)
 
 print("\n============== Override Table ==============\n")

@@ -20,15 +20,15 @@ image_path = "Images/CCI/CCI_3Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"For every row between 'Total secured debt' and 'Total unsecured debt', extract the year from the 'Maturity' column and the number from the 'Unsecured Debt' column in the image in following format: "
-    f"| Year | Unsecured Debt | \n"
-    f"|------|--------------- | \n"
-    f"Preserve the order of rows and include a final 'Total Unsecured Debt' row.\n"
-    f"Append the 'Total Secured Debt' row and its Unsecured Debt number after the 'Total Unsecured Debt' row.\n"
-    f"If there is a 'Various' in the 'Maturity' column, rename it to 'Thereafter' and move it before the'Total Unsecured Debt' row.\n"
-    f"Create a 'Total Unsecured Debt' row at the end to be the sum of the 'Total Secured Debt' and 'Total Unsecured Debt' rows.\n"
-    f"Then create and return a second markdown table that groups the Unsecured Debt numbers by each unique maturity year, followed by 'Total Secured Debt', 'Total Unsecured Debt' and 'Total Debt'."
+prompt = (f"""
+    For every row between 'Total secured debt' and 'Total unsecured debt', extract the year from the 'Maturity' column and the number from the 'Unsecured Debt' column in the image in following format:
+    | Year | Unsecured Debt |
+    |------|--------------- |
+    Preserve the order of rows and include a final 'Total Unsecured Debt' row.
+    Append the 'Total Secured Debt' row and its Unsecured Debt number after the 'Total Unsecured Debt' row.
+    If there is a 'Various' in the 'Maturity' column, rename it to 'Thereafter' and move it before the'Total Unsecured Debt' row.
+    Create a 'Total Debt' row at the end to be the sum of the 'Total Secured Debt' and 'Total Unsecured Debt' rows.
+    Then create and return a second markdown table that groups the unsecured debt numbers by each unique maturity year, followed by 'Total Secured Debt', 'Total Unsecured Debt' and 'Total Debt'."""
 )
 
 completion = client.chat.completions.create(
@@ -38,7 +38,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -64,24 +64,16 @@ for line in lines[start:]:
         break
     first_table.append(line)
 
-rows = [re.split(r"\s*\|\s*", l.strip())[1:-1]
-        for l in first_table
-        if "|" in l and "---" not in l]
-
+rows = [re.split(r"\s*\|\s*", l.strip())[1:-1] for l in first_table if "|" in l and "---" not in l]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-df["Unsecured_Num"] = (pd.to_numeric(
-    df["Unsecured Debt"]
-        .str.replace(r"[^\d]", "", regex=True),
-    errors="coerce")
-)
-
+df["Unsecured_Num"] = (pd.to_numeric(df["Unsecured Debt"].str.replace(r"[^\d]", "", regex=True), errors="coerce"))
 df = df.dropna(subset=["Unsecured_Num"])
 
-def bucket(y: str) -> str | None:
-    if y == "Thereafter": return "Long-term"
-    if y.isdigit():
-        yr = int(y)
+def bucket(year: str) -> str | None:
+    if year == "Thereafter": return "Long-term"
+    if year.isdigit():
+        yr = int(year)
         if 2024 <= yr <= 2029: 
             return "Near-term"
         if 2030 <= yr <= 2033: 
@@ -115,11 +107,11 @@ manual_overrides: dict[str, int] = {
       "Total Debt": 24_229 
 }
 
-for yr, val in manual_overrides.items():
+for yr, value in manual_overrides.items():
     if yr in summary_df["Year"].values:
-        summary_df.loc[summary_df["Year"] == yr, "Unsecured Debt"] = val
+        summary_df.loc[summary_df["Year"] == yr, "Unsecured Debt"] = value
     else:
-        summary_df.loc[len(summary_df)] = [yr, val]
+        summary_df.loc[len(summary_df)] = [yr, value]
 
 bucket_df = (summary_df.loc[~summary_df["Year"].str.contains("Total", case=False)].assign(Bucket=lambda d: d["Year"].apply(bucket)))
 bucket_sums = (bucket_df.groupby("Bucket", sort=False).agg(Unsecured_Num=("Unsecured Debt", "sum")).reset_index())
@@ -129,8 +121,7 @@ debt_buckets = (bucket_sums.assign(Ticker=ticker,
                                   Quarter=quarter,
                                   Unit=units,
                                   Currency=currency,
-                                  Category=category)
-                          .rename(columns={"Bucket": "Unsecured Debt"}))
+                                  Category=category).rename(columns={"Bucket": "Unsecured Debt"}))
 
 debt_buckets["Amount"] = debt_buckets["Unsecured_Num"].map("{:,}".format)
 debt_buckets = debt_buckets[["Ticker","Quarter","Unsecured Debt","Amount", "Unit","Currency","Category"]]
@@ -145,18 +136,14 @@ debt_buckets.loc[len(debt_buckets)] = {
     "Category":       category
 }
 
-tot_unsec = summary_df["Unsecured Debt"].sum()
-tot_secured = int(df.loc[df["Year"].str.contains("Total Secured", case=False),"Unsecured_Num"].iloc[0])
-tot_debt = tot_unsec + tot_secured
-
-def _rank(label: str) -> int:
+def rank(label: str) -> int:
     if label.isdigit():
         return int(label)
     if label == "Thereafter":
         return 99_999
     return 1_000_000 
 
-final_table = (pd.concat([summary_df], ignore_index=True).sort_values(by="Year", key=lambda s: s.map(_rank)))
+final_table = summary_df.sort_values(by="Year", key=lambda s: s.map(rank))
 final_table["Unsecured Debt"] = final_table["Unsecured Debt"].map("{:,}".format)
 
 print("\n============== Override Table ==============\n")

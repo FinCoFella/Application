@@ -2,7 +2,6 @@ import os
 import re
 import base64
 import pandas as pd
-import math
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -21,22 +20,22 @@ image_path = "Images/RF/RF_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = (
-    f"Carefully read and execute the following instructions:\n"
-    f"Extract the property type labels and loan amounts from this image, then output a markdown table with columns:\n"
-        "Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.\n"
-    f"Add the percentages from 'Residential homebuilders' and 'Residential land' into 'Residential'.\n" 
-    f"Add the percentages of 'Data center', 'Diversified', 'Healthcare', 'Commercial land', 'Other', and 'Self storage' into the single 'Other' property type.\n"
-    f"Then multiply each percentage by property type by the dollar amount value in the center of the pie chart to determine the loan amount by property type.\n"
-    f"Rename 'Apartments' to 'Multi-family' and 'Hotel' to 'Lodging'.\n"
-    f"The only property type labels in the table should be 'Multi-family', 'Industrial', 'Lodging', 'Office', 'Retail', 'Residential' and 'Other'.\n"
-    f"Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.\n"
-    f"Truncate the decimal and divide by 1000.\n"
-    f"- Ticker: {ticker}\n"
-    f"- Quarter: {quarter}\n"
-    f"- Units: {units}\n"
-    f"- Currency: {currency}\n"
-    f"- Category: {category}"
+prompt = (f"""
+    Carefully read and execute the following instructions:
+    Extract the property type labels and loan amounts from this image, then output a markdown table with columns:
+        Ticker, Quarter, CRE Property Type, Loan Amount, Units, Currency, Category.
+    Add the percentages from 'Residential homebuilders' and 'Residential land' into 'Residential'.
+    Add the percentages of 'Data center', 'Diversified', 'Healthcare', 'Commercial land', 'Other', and 'Self storage' into the single 'Other' property type.
+    Then multiply each percentage by property type by the dollar amount value in the center of the pie chart to determine the loan amount by property type.
+    Rename 'Apartments' to 'Multi-family' and 'Hotel' to 'Lodging'.
+    The only property type labels in the table should be 'Multi-family', 'Industrial', 'Lodging', 'Office', 'Retail', 'Residential' and 'Other'.
+    Ensure that the final row is labeled 'Total CRE' in 'Property Type' column and shows the total loan amount.
+    Truncate the decimal and divide by 1000.
+    - Ticker: {ticker}
+    - Quarter: {quarter}
+    - Units: {units}
+    - Currency: {currency}
+    - Category: {category}"""
 )
 
 response = client.chat.completions.create(
@@ -46,7 +45,7 @@ response = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {

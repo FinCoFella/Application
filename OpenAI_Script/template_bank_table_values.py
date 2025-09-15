@@ -60,8 +60,6 @@ markdown_table = completion.choices[0].message.content or ""
 print("\n LLM API Raw Markdown Table:\n")
 print(markdown_table)
 
-#####################################################################################
-
 lines = [ln for ln in markdown_table.strip().splitlines() if "|" in ln]
 lines = [ln for ln in lines if not re.search(r'^\s*\|\s*:?-{3,}', ln)]
 
@@ -90,19 +88,11 @@ manual_corrections = {
 
 if manual_corrections:
     non_total_mask = ~df["CRE Property Type"].str.contains("Total", case=False, na=False)
-    df.loc[non_total_mask, "Loan Amount"] = (
-        df.loc[non_total_mask, "CRE Property Type"].map(manual_corrections).fillna(df.loc[non_total_mask, "Loan Amount"])
-    )
+    df.loc[non_total_mask, "Loan Amount"] = (df.loc[non_total_mask, "CRE Property Type"].map(manual_corrections).fillna(df.loc[non_total_mask, "Loan Amount"]))
 
     if df["CRE Property Type"].str.contains("Total", case=False, na=False).any():
         total_mask = df["CRE Property Type"].str.contains("Total", case=False, na=False)
-        subtotal = (
-            df.loc[~total_mask, "Loan Amount"]
-            .astype(str)
-            .str.replace(",", "", regex=False)
-            .astype(float)
-            .sum()
-        )
+        subtotal = (df.loc[~total_mask, "Loan Amount"].astype(str).str.replace(",", "", regex=False).astype(float).sum())
         df.loc[total_mask, "Loan Amount"] = subtotal
 
 df["Loan Amount"] = pd.to_numeric(df["Loan Amount"].astype(str).str.replace(",", "", regex=False),errors="coerce")

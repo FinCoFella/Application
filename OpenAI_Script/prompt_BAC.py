@@ -20,7 +20,7 @@ image_path = "Images/BAC/BAC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
-instruction_text = f"""
+prompt = f"""
 EXTRACTION STAGE
 1) Extract the property type labels and loan amount values from the pie chart image. 
 
@@ -49,7 +49,7 @@ completion = client.chat.completions.create(
             "role": "user",
             "content": [
                 {
-                    "type": "text", "text": instruction_text},
+                    "type": "text", "text": prompt},
                 {
                     "type": "image_url",
                     "image_url": {
@@ -80,7 +80,6 @@ corrections = {
     "Mixed-use": 2_200,
     "Other": 13_200,
 }
-
 
 df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"] = (
     df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "CRE Property Type"]
