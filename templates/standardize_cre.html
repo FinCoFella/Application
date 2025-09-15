@@ -1,19 +1,19 @@
 {% extends "index.html" %}
 
-<!--- UPLOAD IMAGE AND USER INPUT FIELDS --->
 {% block content %}
 
+<!-- Form to allow a user to upload a CRE PNG image, enter values into fields, and select a chart type option in a drop down menu -->
 <form class="ticker-form" action="{{ url_for('standardize_cre') }}" method="post" enctype="multipart/form-data">
 
   <div class="file-row">
       <input type="file" name="image" accept="image/png" required>
   </div>
 
-  <input class="ticker-input" name="ticker"   placeholder="Ticker"   value="{{ ticker or '' }}"   required>
-  <input class="ticker-input" name="quarter"  placeholder="Quarter"      value="{{ quarter or '' }}"  required>
-  <input class="ticker-input" name="units"    placeholder="Units"          value="{{ units or '' }}"    required>
-  <input class="ticker-input" name="currency" placeholder="Currency"      value="{{ currency or '' }}" required>
-  <input class="ticker-input" name="category" placeholder="Category"      value="{{ category or '' }}" required>
+  <input class="ticker-input" name="ticker" placeholder="Ticker" value="{{ ticker or '' }}" required>
+  <input class="ticker-input" name="quarter"  placeholder="Quarter" value="{{ quarter or '' }}" required>
+  <input class="ticker-input" name="units" placeholder="Units" value="{{ units or '' }}" required>
+  <input class="ticker-input" name="currency" placeholder="Currency" value="{{ currency or '' }}" required>
+  <input class="ticker-input" name="category" placeholder="Category" value="{{ category or '' }}" required>
 
   <select class="ticker-input" name="chart_type" required>
     {% set ct = chart_type|default('percentage_pie') %}
@@ -27,7 +27,6 @@
   </select>
 
   <button class="ticker-button" type="submit">Standardize&nbsp;CRE</button>
-
 </form>
 
 {% if error_msg %}
@@ -40,7 +39,7 @@
 </div>
 {% endif %}
 
-<!--- FIRST TABLE: LLM EXTRACTED VALUES --->
+<!-- Generate results table containing extracted financial data -->
 {% if rows %}
   <div class="table-wrapper">
     <table class="styled-table">
@@ -51,25 +50,25 @@
         </tr>
       </thead>
       <tbody>
-        {% for r in rows %}
+        {% for row in rows %}
           <tr>
-            <td>{{ r.Ticker }}</td>
-            <td>{{ r.Quarter }}</td>
-            <td>{{ r.Line_Item_Name }}</td>
-            <td>{{ "{:,}".format(r.Value) if r.Value is not none else "" }}</td>
-            <td>{{ r.Unit }}</td>
-            <td>{{ r.Currency }}</td>
-            <td>{{ r.Category }}</td>
+            <td>{{ row.Ticker }}</td>
+            <td>{{ row.Quarter }}</td>
+            <td>{{ row.Line_Item_Name }}</td>
+            <td>{{ "{:,}".format(row.Value) if row.Value is not none else "" }}</td>
+            <td>{{ row.Unit }}</td>
+            <td>{{ row.Currency }}</td>
+            <td>{{ row.Category }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-<!--- OVERRIDE VALUE FORM --->
-
+  <!-- Defined standardized lables for the override form -->
   {% set standardized_labels = ['Multi-family', 'Industrial', 'Lodging', 'Office', 'Retail', 'Mixed-use', 'Residential', 'Other'] %}
 
+  <!--- Form containing a template engine loop that allows the user to override values for each standardized label -->
   <form class="ticker-form override-form" action="{{ url_for('standardize_cre') }}" method="post" style="margin-top:20px">
 
      <input type="hidden" name="override" value="1">
@@ -95,7 +94,7 @@
   </form>
 {% endif %}
 
-<!--- SECOND TABLE: OVERRIDED VALUES --->
+<!--- Generate results table containing the overridden values for each standardized label -->
 {% if override_rows %}
   <div class="table-wrapper">
     <table class="styled-table">
@@ -106,15 +105,15 @@
         </tr>
       </thead>
       <tbody>
-        {% for r in override_rows %}
+        {% for row in override_rows %}
           <tr>
-            <td>{{ r.Ticker }}</td>
-            <td>{{ r.Quarter }}</td>
-            <td>{{ r.Line_Item_Name }}</td>
-            <td>{{ "{:,}".format(r.Value) if r.Value is not none else "" }}</td>
-            <td>{{ r.Unit }}</td>
-            <td>{{ r.Currency }}</td>
-            <td>{{ r.Category }}</td>
+            <td>{{ row.Ticker }}</td>
+            <td>{{ row.Quarter }}</td>
+            <td>{{ row.Line_Item_Name }}</td>
+            <td>{{ "{:,}".format(row.Value) if row.Value is not none else "" }}</td>
+            <td>{{ row.Unit }}</td>
+            <td>{{ row.Currency }}</td>
+            <td>{{ row.Category }}</td>
           </tr>
         {% endfor %}
       </tbody>
