@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+
+<!-- A common webpage layout for other webpages to inherit template engine syntax block and CSS styling -->
 <html>
     <head>
         <title>{% block title %} Home {% endblock %}</title>
             <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
+
     <body style="background-color: white;">
         <nav class="navbar">
             <div class="navdiv">
