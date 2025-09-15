@@ -1,16 +1,11 @@
 from sqlalchemy import text
 import pandas as pd
 
+#### FUNCTION TO LOAD REIT DATA FOR A SPECIFIC TICKER ####
 def load_ticker_reit(ticker: str, engine) -> pd.DataFrame:
 
     sql = text("""
-        SELECT  Ticker,
-                Quarter,
-                Line_Item_Name,
-                Value,
-                Unit,
-                Currency,
-                Category
+        SELECT  Ticker, Quarter, Line_Item_Name, Value, Unit, Currency, Category
         FROM    dbo.Financial_Line_Item
         WHERE   Ticker = :ticker
         ORDER BY Quarter

@@ -12,4 +12,6 @@ def load_ticker_bank(ticker: str, quarter: str, engine) -> pd.DataFrame:
     """)
     
     with engine.begin() as conn:
-        return pd.read_sql(sql, conn, params={"ticker": ticker.upper(), "quarter": quarter})
+        df = pd.read_sql(sql, conn, params={"ticker": ticker.upper(), "quarter": quarter})
+        
+    return df
