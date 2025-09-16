@@ -73,7 +73,6 @@ lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-
 corrections = {
     "Office": 15_100,
     "Multi-family": 11_000,

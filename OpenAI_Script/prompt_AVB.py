@@ -50,16 +50,17 @@ completion = client.chat.completions.create(
         }
     ]
 )
-
+###### Extracts and stores a markdown table from the LLM response #####
 markdown_table = completion.choices[0].message.content
-print("\nRaw Markdown Table:\n")
+print("\n ===== Raw Markdown Table ===== \n")
 print(markdown_table)
 
+##### Parses the markdown table into a DataFrame #####
 lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
-# Adjust
+##### Manually insert override values for specific years #####
 manual_overrides: dict[str, int] = {
     "2025": 825,
     "2026": 775,
@@ -75,17 +76,22 @@ manual_overrides: dict[str, int] = {
     "Total Unsecured Debt": 7_400,
 }
 
+##### Applies the manual overrides to the DataFrame #####
 df["Unsecured Debt"] = df["Year"].map(manual_overrides)
-
-unsecured_debt_df = df.copy()
-unsecured_debt_df = unsecured_debt_df[~unsecured_debt_df["Year"].str.contains("Total", case=False, na=False)]
-unsecured_debt_df["Unsecured_Num"] = unsecured_debt_df["Year"].map(manual_overrides).astype(float)
-
+##### Keeps only the 'Year' and 'Unsecured Debt' columns in the DataFrame #####
 df = df[["Year", "Unsecured Debt"]]
 
-print("\nFinal Adjusted Table:\n")
+print("\n ===== Final Adjusted Table =====\n")
 print(df.to_markdown(index=False))
 
+##### Creates a copy of the DataFrame #####
+unsecured_debt_df = df.copy()
+##### Removes any rows that contain the word "Total" in the "Year" #####
+unsecured_debt_df = unsecured_debt_df[~unsecured_debt_df["Year"].str.contains("Total", case=False, na=False)]
+##### Looks up the year in the manual_overrides dictionary and assigns the corresponding value to a new column 'Unsecured_Num' #####
+unsecured_debt_df["Unsecured_Num"] = unsecured_debt_df["Year"].map(manual_overrides).astype(float)
+
+##### A function that maps a year label into a maturity bucket #####
 def bucket(year):
     if year == "Thereafter":
         return "Long-term"
@@ -99,32 +105,38 @@ def bucket(year):
             return "Long-term"
     return "Other"
 
+##### Applies the bucket function on the 'Year' column to create a new 'Bucket' column #####
 unsecured_debt_df["Bucket"] = unsecured_debt_df["Year"].apply(bucket)
+##### Drops any rows with missing values in the 'Bucket' column #####
 df_work = unsecured_debt_df.dropna(subset=["Bucket"])
+##### Groups the DataFrame by the 'Bucket' column and sums the 'Unsecured_Num' values for each bucket #####
 bucket_sums = (df_work.groupby("Bucket", sort=False, as_index=False).agg({"Unsecured_Num": "sum"}))
-
+##### Sums the values in the 'bucket_sums' DataFrame to calculate a total value #####
 grand_total = bucket_sums["Unsecured_Num"].sum()
 
+##### Appends a final row to the DataFrame with the total value #####
 total_row = {
-    "Ticker":   ticker,
-    "Quarter":  quarter,
+    "Ticker": ticker,
+    "Quarter": quarter,
     "Unsecured Debt": "Total Unsecured Debt",
-    "Amount":   f"{int(grand_total):,}",
-    "Unit":     units,
+    "Amount": f"{int(grand_total):,}",
+    "Unit": units,
     "Currency": currency,
     "Category": category
 }
 
+##### Creates a new DataFrame by assigning the constant user input values to each row of the 'bucket_sums' DataFrame in new columns #####
 debt_buckets_df = pd.DataFrame({
-    "Ticker":         ticker,
-    "Quarter":        quarter,
+    "Ticker": ticker,
+    "Quarter": quarter,
     "Unsecured Debt": bucket_sums["Bucket"],
-    "Amount":         bucket_sums["Unsecured_Num"].astype(int).map("{:,}".format),
-    "Unit":           units,
-    "Currency":       currency,
-    "Category":       category 
+    "Amount": bucket_sums["Unsecured_Num"].astype(int).map("{:,}".format),
+    "Unit": units,
+    "Currency": currency,
+    "Category": category 
 })
 
+##### Appends the total row to the 'debt_buckets_df' DataFrame #####
 debt_buckets_df.loc[len(debt_buckets_df)] = total_row 
 
 print("\n====================== Unsecured Debt Buckets =========================")
