@@ -22,6 +22,7 @@ image_path = "Images/WFC/WFC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
+##### LLM prompt instructions to extract financial data and produce a Markdown table #####
 prompt = (f"""
     Extract the property type labels below the 'By property:' row and their corresponding 'Loans oustanding balance' values under the 'Total commercial real estate' section from this image.
     Then generate a markdown table with the following columns in this exact order:
@@ -39,6 +40,7 @@ prompt = (f"""
     Format everything as a clean markdown table."""
 )
 
+##### Sends the prompt and Base64 image URL to the LLM, which decodes the text string into pixels and processes the image and prompt #####
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=[
@@ -59,7 +61,7 @@ response = client.chat.completions.create(
 )
 
 markdown_string = response.choices[0].message.content.strip()
-print("\nRaw Markdown Table:\n")
+print("\n ===== Raw Markdown Table ===== \n")
 print(markdown_string)
 
 lines = [
@@ -86,5 +88,5 @@ corrections = {
 df["Loan Amount"] = (df["CRE Property Type"].map(corrections))
 df["Loan Amount"] = (df["Loan Amount"].astype(int).map("{:,}".format))
 
-print("\nOverride Table\n")
+print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))

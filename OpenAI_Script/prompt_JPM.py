@@ -5,21 +5,24 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
+##### Loads environment variables to grab an OpenAI key value to create an OpenAI authenticated client #####
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
+##### Collects user input and stores the entered data into variables #####
 ticker = input("Enter the Ticker: ").strip()
 quarter = input("Enter the Quarter: ").strip()
 units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-
+##### Establishes a file path to the image in the repository and encodes the raw bytes of the image into a Base64 text string #####
 image_path = "Images/JPM/JPM_1Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
+##### LLM prompt instructions to extract financial data and produce a Markdown table #####
 prompt = (f"""
     Extract the property type labels, their corresponding values in the 'Credit Exposure' column, and the '% Drawn' column from this image.
     Then multiply the values in '% Drawn' column with the values in th 'Credit Exposure' column and place the product in a 'Loan Amount' column. 
@@ -37,6 +40,7 @@ prompt = (f"""
     Format everything as a clean markdown table."""
 )
 
+##### Sends the prompt and Base64 image URL to the LLM, which decodes the text string into pixels and processes the image and prompt #####
 response = client.chat.completions.create(
     model="gpt-4o",
     messages=[
@@ -57,7 +61,7 @@ response = client.chat.completions.create(
 )
 
 markdown_string = response.choices[0].message.content.strip()
-print("\nRaw Markdown Table:\n")
+print("\n ====== Raw Markdown Table ===== \n")
 print(markdown_string)
 
 lines = [
@@ -87,5 +91,5 @@ df.loc[total, "Loan Amount"] = df.loc[~total, "Loan Amount"].sum()
 df["Loan Amount"] = df["Loan Amount"].round().astype(int).map("{:,}".format)
 df = df[["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Units", "Currency", "Category"]]
 
-print("\nOverride Table\n")
+print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))

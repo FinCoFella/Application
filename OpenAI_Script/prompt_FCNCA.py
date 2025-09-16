@@ -57,4 +57,5 @@ completion = client.chat.completions.create(
     ]
 )
 
+print("\n ===== Raw Markdown Table =====\n")
 print(completion.choices[0].message.content)

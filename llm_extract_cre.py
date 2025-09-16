@@ -13,6 +13,8 @@ getcontext().prec = 28
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=60.0)
 
+
+##### Resizes, optimizes, and encodes an uploaded PNG image to Base64, sends it to the LLM with a prompt, and retrieves a markdown table and explanation text #####
 def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currency: str, category: str, chart_type: str = "percentage_pie") -> tuple[str, str]:
     tmp_path = None
     
@@ -24,16 +26,16 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
 
         try:
             with Image.open(tmp_path) as img:
-                w, h = img.size
+                width, height = img.size
 
-                if w > 0 and h > 0:
+                if width > 0 and height > 0:
                     max_side = 1600
-                    long_side = max(w, h)
+                    long_side = max(width, height)
                     scale = min(2.0, max_side / float(long_side))
 
                     if abs(scale - 1.0) > 1e-9:
                         resample = Image.Resampling.LANCZOS if hasattr(Image, "Resampling") else Image.LANCZOS
-                        new_size = (int(w * scale), int(h * scale))
+                        new_size = (int(width * scale), int(height * scale))
                         img = img.resize(new_size, resample=resample)
 
                 img.save(tmp_path, format="PNG", optimize=True)
@@ -41,8 +43,8 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
         except Exception:
             pass
 
-        with open(tmp_path, "rb") as f:
-            image_b64 = base64.b64encode(f.read()).decode("utf-8")
+        with open(tmp_path, "rb") as img_file:
+            image_b64 = base64.b64encode(img_file.read()).decode("utf-8")
 
         ticker_up = ticker.upper()
         ticker_builder = TICKER_PROMPT_MAP.get(ticker_up)
@@ -93,17 +95,17 @@ def extract_cre_table(image_file, ticker: str, quarter: str, units: str, currenc
             except Exception:
                 pass
 
-############ Convert Markdown Table into Python Dictionary List ############
+##### Converts a markdown table string into a list of dictionaries with cleaned and typed values #####
 def md_table_to_rows(md_table: str):
 
     rows = []
-    lines = [l for l in md_table.splitlines() if l.startswith("|")]
+    lines = [line for line in md_table.splitlines() if line.startswith("|")]
 
     if len(lines) < 3:
         return rows
     
     for line in lines[2:]:
-        parts = [p.strip() for p in line.strip().strip("|").split("|")]
+        parts = [part.strip() for part in line.strip().strip("|").split("|")]
         if len(parts) != 7:
             continue
         try:
@@ -125,7 +127,7 @@ def md_table_to_rows(md_table: str):
 
     return rows
 
-##### NORMALIZES LABELS AND AGGREGATES THEIR VALUE IF IT MATCHES STANDARDIZED LABELS #####
+##### Group rows by normalized labels, sum the corresponding numeric values, and append a 'Total CRE' row #####
 def aggregate_standardized(rows):
     if not rows:
         return rows
@@ -133,8 +135,8 @@ def aggregate_standardized(rows):
     agg = defaultdict(float)
     user_input_data = {a: b for a, b in rows[0].items() if a not in ("Line_Item_Name", "Value")}
 
-    for r in rows:
-        name = str(r.get("Line_Item_Name", "")).strip()
+    for row in rows:
+        name = str(row.get("Line_Item_Name", "")).strip()
 
         if not name or name.lower() == "total cre":
             continue
@@ -142,25 +144,25 @@ def aggregate_standardized(rows):
 
         if normalized not in Standardized_Labels:
             continue
-        val = r.get("Value") or 0
+        value = row.get("Value") or 0
 
         try:
-            val = float(val)
+            value = float(value)
         except Exception:
-            val = 0
+            value = 0
             
-        agg[normalized] += val
+        agg[normalized] += value
 
     output = []
-    for label, val in agg.items():
-        output.append({**user_input_data, "Line_Item_Name": label, "Value": int(val)})
+    for label, value in agg.items():
+        output.append({**user_input_data, "Line_Item_Name": label, "Value": int(value)})
 
-    total = int(sum(r["Value"] for r in output))
+    total = int(sum(row["Value"] for row in output))
     output.append({**user_input_data, "Line_Item_Name": "Total CRE", "Value": total})
 
     return output
 
-##### CLEANS THE EXTRACTED LABEL AND RETURNS A MAPPED LABEL FROM SYNONYMS DICTIONARY #####
+##### Normalizes a label by trimming whitespace, case folding, and mapping synonyms to standardized labels #####
 def normalize_label(label: str) -> str:
     a = re.sub(r"\s+", " ", label.strip()).casefold()
 
@@ -171,14 +173,14 @@ def normalize_label(label: str) -> str:
 
     return mapped
 
-##### CALCULATES LOAN AMOUNT VALUES BEFORE AGGREGATING BY NORMALIZED LABELS, AND APPENDS TOTAL CRE ROW #####
+##### Cleans, scales, aggregates values by normalized labels, and appends a total CRE row from a pie chart JSON explanation #####
 def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, currency, category):
-    m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
+    match = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
 
-    if not m:
+    if not match:
         return None
     try:
-        data = json.loads(m.group(1))
+        data = json.loads(match.group(1))
     except Exception:
         return None
 
@@ -187,14 +189,14 @@ def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, curr
 
     agg = defaultdict(Decimal)
 
-    for s in slices:
-        raw_label = str(s.get("label", "")).strip()
-        pct = s.get("percent")
+    for slice in slices:
+        raw_label = str(slice.get("label", "")).strip()
+        percent = slice.get("percent")
 
-        if pct is None:
+        if percent is None:
             continue
 
-        amt_exact = (total * Decimal(str(pct))) / Decimal(100)
+        amt_exact = (total * Decimal(str(percent))) / Decimal(100)
         amt_trunc = amt_exact.quantize(Decimal("1"), rounding=ROUND_DOWN)
 
         norm = normalize_label(raw_label)
@@ -202,23 +204,23 @@ def rows_from_slices_json_precise(explanation_text, ticker, quarter, units, curr
             agg[norm] += amt_trunc
 
     meta = {"Ticker": ticker, "Quarter": quarter, "Unit": units, "Currency": currency, "Category": category}
-    rows = [{**meta, "Line_Item_Name": k, "Value": int(v)} for k, v in agg.items()]
-    total_row = int(sum(r["Value"] for r in rows))
+    rows = [{**meta, "Line_Item_Name": a, "Value": int(b)} for a, b in agg.items()]
+    total_row = int(sum(row["Value"] for row in rows))
     rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total_row})
 
     return rows
 
-##### CLEANS, SCALES, AGGREGATES VALUES BY NORMALIZED LABELS, AND APPENDS TOTAL CRE ROW #####
+##### Cleans, scales, aggregates values by normalized labels, and appends a total CRE row from a value table JSON explanation #####
 def rows_from_table_json_precise(explanation_text, ticker, quarter, units, currency, category):
     if not explanation_text:
         return None
     
-    m = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
+    match = re.search(r"```json\s*(\{.*?\})\s*```", explanation_text, flags=re.S|re.I)
 
-    if not m:
+    if not match:
         return None
     try:
-        data = json.loads(m.group(1))
+        data = json.loads(match.group(1))
     except Exception:
         return None
 
@@ -226,42 +228,42 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
     if not isinstance(rows_json, list) or not rows_json:
         return None
 
-    def to_decimal(x):
-        if x is None:
+    def to_decimal(value):
+        if value is None:
             return None
         
-        s = str(x).strip()
-        s = s.replace("US$", "").replace("$", "").replace(",", "")
+        cln_str_amount = str(value).strip()
+        cln_str_amount = cln_str_amount.replace("US$", "").replace("$", "").replace(",", "")
 
-        if s.startswith("(") and s.endswith(")"):
-            s = "-" + s[1:-1]
+        if cln_str_amount.startswith("(") and cln_str_amount.endswith(")"):
+            cln_str_amount = "-" + cln_str_amount[1:-1]
         try:
-            return Decimal(s)
+            return Decimal(cln_str_amount)
         except Exception:
             return None
         
     label_values = []
     values = []
 
-    for r in rows_json:
-        label = str(r.get("label", "")).strip()
+    for row in rows_json:
+        label = str(row.get("label", "")).strip()
         if not label or label.lower() in {"total", "total cre"}:
             continue
 
-        v = to_decimal(r.get("amount"))
-        if v is None:
-            v = to_decimal(r.get("amount_mn"))
-        if v is None:
+        value = to_decimal(row.get("amount"))
+        if value is None:
+            value = to_decimal(row.get("amount_mn"))
+        if value is None:
             continue
 
-        label_values.append((label, v))
-        values.append(v)
+        label_values.append((label, value))
+        values.append(value)
 
     if not values:
         return None
 
-    millions = any(v >= Decimal("100") for v in values)
-    not_mn   = all(v <  Decimal("100")  for v in values)
+    millions = any(value >= Decimal("100") for value in values)
+    not_mn = all(value <  Decimal("100")  for value in values)
 
     if millions:
         scale = Decimal(1)
@@ -273,11 +275,11 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
 
     
     agg = defaultdict(lambda: Decimal(0))
-    for label, v in label_values:
-        v_scaled = (v * scale)
+    for label, value in label_values:
         norm = normalize_label(label)
         if norm in Standardized_Labels:
-            agg[norm] += (v * scale)
+            v_scaled = (value * scale)
+            agg[norm] += (v_scaled)
 
     if not agg:
         return None
@@ -289,7 +291,7 @@ def rows_from_table_json_precise(explanation_text, ticker, quarter, units, curre
         for a, val in agg.items()
     ]
 
-    total = int(sum(r["Value"] for r in rows))
+    total = int(sum(row["Value"] for row in rows))
     rows.append({**meta, "Line_Item_Name": "Total CRE", "Value": total})
     
     return rows

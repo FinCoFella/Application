@@ -22,6 +22,7 @@ image_path = "Images/FCNCA/FCNCA_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
+##### LLM prompt instructions to extract financial data and produce a Markdown table #####
 generic_prompt = f"""
 EXTRACTION STAGE
 1) Extract the property type labels and loan amount values from the pie chart image. 
@@ -43,6 +44,7 @@ RAW MARKDOWN STAGE
 - Category: {category}
 """
 
+##### Sends the prompt and Base64 image URL to the LLM, which decodes the text string into pixels and processes the image and prompt #####
 completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[
@@ -60,7 +62,7 @@ completion = client.chat.completions.create(
 )
 
 markdown_table = completion.choices[0].message.content or ""
-print("\n LLM API Raw Markdown Table:\n")
+print("\n ===== LLM API Raw Markdown Table ===== \n")
 print(markdown_table)
 
 lines = [ln for ln in markdown_table.strip().splitlines() if "|" in ln]
@@ -101,5 +103,5 @@ if manual_corrections:
 df["Loan Amount"] = pd.to_numeric(df["Loan Amount"].astype(str).str.replace(",", "", regex=False),errors="coerce")
 df["Loan Amount"] = df["Loan Amount"].map(lambda v: f"{v:,.0f}" if pd.notna(v) else "")
 
-print("\nOverride Table:\n")
+print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))

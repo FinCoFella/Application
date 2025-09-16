@@ -108,5 +108,5 @@ if manual_corrections:
 df["Loan Amount"] = pd.to_numeric(df["Loan Amount"].astype(str).str.replace(",", "", regex=False),errors="coerce")
 df["Loan Amount"] = df["Loan Amount"].map(lambda v: f"{v:,.0f}" if pd.notna(v) else "")
 
-print("\n ===== Override Table =====\n")
+print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))

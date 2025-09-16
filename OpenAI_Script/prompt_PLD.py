@@ -6,21 +6,24 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
+##### Loads environment variables to grab an OpenAI key value to create an OpenAI authenticated client #####
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
+##### Collects user input and stores the entered data into variables #####
 ticker = input("Enter the Ticker: ").strip()
 quarter = input("Enter the Quarter: ").strip()
 units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-
+##### Establishes a file path to the image in the repository and encodes the raw bytes of the image into a Base64 text string #####
 image_path = "Images/PLD/PLD_1Q24_Debt.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
+##### LLM prompt instructions to extract financial data and produce a Markdown table #####
 prompt = (f"""
     Extract the values corresponding to the 'Total' and 'Secured Mortgage' columns corresponding to each maturity year from the image.
     Then for each maturity year, take the difference between the 'Total' and 'Secured Mortgage' columns and place the calculated values into a single column called 'Unsecured Debt'.
@@ -30,6 +33,7 @@ prompt = (f"""
     Preserve the order of each maturity year and include a 'Total Unsecured Debt' row at the end to sum all the maturity years."""
 )
 
+##### Sends the prompt and Base64 image URL to the LLM, which decodes the text string into pixels and processes the image and prompt #####
 completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[

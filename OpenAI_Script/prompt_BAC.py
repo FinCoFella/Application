@@ -5,21 +5,24 @@ import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 
+##### Loads environment variables to grab an OpenAI key value to create an OpenAI authenticated client #####
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
+##### Collects user input and stores the entered data into variables #####
 ticker = input("Enter the Ticker: ").strip()
 quarter = input("Enter the Quarter: ").strip()
 units = input("Enter the Units: ").strip()
 currency = input("Enter the Currency: ").strip()
 category = input("Enter the Category: ").strip()
 
-
+##### Establishes a file path to the image in the repository and encodes the raw bytes of the image into a Base64 text string #####
 image_path = "Images/BAC/BAC_4Q24_CRE.png"
 with open(image_path, "rb") as image_file:
     image_base64 = base64.b64encode(image_file.read()).decode("utf-8")
 
+##### LLM prompt instructions to extract financial data and produce a Markdown table #####
 prompt = f"""
 EXTRACTION STAGE
 1) Extract the property type labels and loan amount values from the pie chart image. 
@@ -42,6 +45,7 @@ TABLE CREATION STAGE
 - Category: {category}
 """
 
+##### Sends the prompt and Base64 image URL to the LLM, which decodes the text string into pixels and processes the image and prompt #####
 completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[
@@ -62,7 +66,7 @@ completion = client.chat.completions.create(
 )
 
 markdown_table = completion.choices[0].message.content
-print("\nRaw Markdown Table:\n")
+print("\n ===== Raw Markdown Table ===== \n")
 print(markdown_table)
 
 lines = markdown_table.strip().split('\n')
@@ -91,5 +95,5 @@ df.loc[df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"]
     .astype(float).sum()
 )
 
-print("\nOverride Table:\n")
+print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))
