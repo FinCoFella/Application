@@ -16,10 +16,12 @@ from bank_stnd_cre import override_values
 
 load_dotenv()
 
+##### Read ODBC connection strings from environment variables #####
 odbc_reits = os.getenv("AZURE_SQL_DB_REITS")
 odbc_banks = os.getenv("AZURE_SQL_DB_BANKS")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+##### Create SQLAlchemy engines for database connections #####
 engine_reits = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_reits), fast_executemany=True)
 engine_banks = create_engine("mssql+pyodbc:///?odbc_connect=" + urllib.parse.quote_plus(odbc_banks), fast_executemany=True)
 
@@ -27,10 +29,12 @@ JSON_FENCE = re.compile(r"```json\s*(\{.*?\})\s*```", re.S | re.I)
 
 app = Flask(__name__)
 
+##### Render the main page #####
 @app.route("/")
 def index():
     return render_template("index.html")
 
+##### Render U.S. REITs webpage, load data from REIT financial database, calculate unsecured debt-to-EBITDA ratio, and generate line chart #####
 @app.route("/reits")
 def reits():                         
     ticker = request.args.get("ticker", "").strip().upper()
@@ -45,6 +49,7 @@ def reits():
 
     return render_template("reits.html", ticker=ticker, rows=rows, ratio_png=ratio_png)
 
+##### Render U.S. Banks webpage, load data from Bank financial database, and generate pie chart for asset composition #####
 @app.route("/banks")
 def banks():                         
     ticker = request.args.get("ticker", "").strip().upper()
@@ -61,6 +66,7 @@ def banks():
 
     return render_template("banks.html", ticker=ticker, quarter=quarter, rows=rows, pie_png=pie_png)
 
+##### Trigger LLM analysis for unsecured debt-to-EBITDA ratio and returns JSON response #####
 @app.route("/analyze_ratio", methods=["POST"])
 def analyze_ratio_route():
     try:
@@ -80,6 +86,7 @@ def analyze_ratio_route():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
     
+##### Trigger LLM analysis for uploaded quarterly PDF document and returns JSON response ##### 
 @app.route("/analyze_ebitda_pdf", methods=["POST"])
 def analyze_quarter_pdf_route():
     try:
@@ -99,10 +106,11 @@ def analyze_quarter_pdf_route():
         print("Error in analyzing PDF:", e, flush=True)
         return jsonify({"error": "Internal server error"}), 500
 
+##### Render the Commercial Real Estate (CRE) Standardization webpage, handle PNG uploads, extract and standardize data using LLM, and allow user overrides #####
 @app.route("/standardize_cre", methods=["GET", "POST"])
 def standardize_cre():
 
-    ##### Override Route #####
+    ##### Override route  branch after user submits the form with manual adjustments #####
     if request.method == "POST" and request.form.get("override") == "1":
         ticker   = request.form["ticker"]
         quarter  = request.form["quarter"]
@@ -131,9 +139,10 @@ def standardize_cre():
                 chart_type=chart_type, 
             )
 
-        ##### STORES THE OVERRIDE VALUES AFTER USER SUBMITS THE FORM #####
+        ##### Applies user overrides to the original extracted rows #####
         override_rows = override_values(orig_rows, request.form)
 
+        ##### Renders the template with original and overridden data #####
         return render_template(
             "standardize_cre.html",
             rows=orig_rows,
@@ -148,7 +157,7 @@ def standardize_cre():
             explanation=None,
         )
     
-    ##### PNG Upload for LLM Analysis Route #####
+    ##### PNG upload and LLM extraction branch #####
     elif request.method == "POST":
         image    = request.files.get("image")
         ticker   = request.form.get("ticker", "").strip().upper()
@@ -186,9 +195,10 @@ def standardize_cre():
                 explanation=explanation_html,
             )
         
-        ##### STORES THE LLM EXTRACTED VALUES AFTER POST PROCESSING STAGE #####
+        ###### Standardizes lables and aggregates rows with the same standardized label and appends 'Total CRE' row #####
         rows = aggregate_standardized(rows)
 
+        ##### Renders the template with extracted and standardized data #####
         return render_template(
             "standardize_cre.html",
             rows=rows,
@@ -205,24 +215,25 @@ def standardize_cre():
     
     return render_template("standardize_cre.html", chart_type="percentage_pie")
 
+##### Helper function to format explanation text with JSON code blocks for HTML rendering #####
 def format_exp_for_html(md_text: str) -> Markup:
 
     if not md_text:
         return Markup("")
 
-    m = JSON_FENCE.search(md_text)
-    if not m:
+    match = JSON_FENCE.search(md_text)
+    if not match:
         return Markup(f"<div class='explanation-text'>{escape(md_text)}</div>")
 
-    raw_json = m.group(1)
+    raw_json = match.group(1)
     pretty = raw_json
     try:
         pretty = json.dumps(json.loads(raw_json), indent=2, ensure_ascii=False)
     except Exception:
         pretty = raw_json
 
-    before = escape(md_text[:m.start()])
-    after  = escape(md_text[m.end():]).lstrip()
+    before = escape(md_text[:match.start()])
+    after  = escape(md_text[match.end():]).lstrip()
 
     html = (
         f"{before}"
