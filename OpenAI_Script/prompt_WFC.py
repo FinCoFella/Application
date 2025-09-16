@@ -60,20 +60,25 @@ response = client.chat.completions.create(
     ]
 )
 
+###### Extracts and stores a markdown table from the LLM response #####
 markdown_string = response.choices[0].message.content.strip()
 print("\n ===== Raw Markdown Table ===== \n")
 print(markdown_string)
 
+##### Parses the markdown table into a DataFrame #####
 lines = [
     ln for ln in markdown_string.splitlines()
     if ln.lstrip().startswith("|") and "---" not in ln
 ]
 rows = [re.split(r"\s*\|\s*", ln.strip())[1:-1] for ln in lines]
 
+##### Converts the list of rows into a pandas DataFrame and assigns column headers #####
 df = pd.DataFrame(rows[1:], columns=[c.strip() for c in rows[0]])
+
+##### Formats the 'Loan Amount' column by removing commas and converting the values to floats #####
 df["Loan Amount"] = (df["Loan Amount"].str.replace(",", "", regex=False).astype(float))
 
-# Adjust
+##### Manually insert override values for specific CRE property type labels #####
 corrections = {
     "Multi-family": 39_758,
     "Office": 27_380,
@@ -85,7 +90,9 @@ corrections = {
     "Total CRE": 136_505
 }
 
+##### Applies the manual override values to the 'Loan Amount' column in the DataFrame #####
 df["Loan Amount"] = (df["CRE Property Type"].map(corrections))
+##### Format the 'Loan Amount' column with commas for thousands separators #####
 df["Loan Amount"] = (df["Loan Amount"].astype(int).map("{:,}".format))
 
 print("\n ===== Override Table ===== \n")

@@ -64,27 +64,25 @@ completion = client.chat.completions.create(
     ],
 )
 
+###### Extracts and stores a markdown table from the LLM response #####
 markdown_table = completion.choices[0].message.content or ""
 print("\n ===== LLM API Raw Markdown Table ===== \n")
 print(markdown_table)
 
+##### Parses the markdown table into a DataFrame #####
 lines = [ln for ln in markdown_table.strip().splitlines() if "|" in ln]
 lines = [ln for ln in lines if not re.search(r'^\s*\|\s*:?-{3,}', ln)]
-
-if not lines:
-    raise ValueError("No markdown table detected.")
-
 rows = [re.split(r'\s*\|\s*', ln.strip())[1:-1] for ln in lines]
-
 header, data_rows = rows[0], rows[1:]
 header = [h.strip() for h in header]
-
 df = pd.DataFrame(data_rows, columns=header)
 df.columns = [c.strip() for c in df.columns]
 
+##### Strips whitespace from 'CRE Property Type' and 'Loan Amount' columns #####    
 df["CRE Property Type"] = df["CRE Property Type"].astype(str).str.strip()
 df["Loan Amount"] = df["Loan Amount"].astype(str).str.strip()
 
+###### Manually insert override values for specific CRE property type labels #####
 manual_corrections = {
     "Office": 15_100,
     "Multi-family": 11_000,
@@ -97,16 +95,20 @@ manual_corrections = {
 }
 
 if manual_corrections:
+    ##### Boolean mask to identify rows that do not contain 'Total' in the 'CRE Property Type' column #####
     non_total_mask = ~df["CRE Property Type"].str.contains("Total", case=False, na=False)
+    ##### Applies the manual override values to the 'Loan Amount' column in the DataFrame #####
     df.loc[non_total_mask, "Loan Amount"] = (df.loc[non_total_mask, "CRE Property Type"].map(manual_corrections).fillna(df.loc[non_total_mask, "Loan Amount"]))
 
+    ##### Calculates the total loan amount value for the 'Total CRE' row in the DataFrame #####
     if df["CRE Property Type"].str.contains("Total", case=False, na=False).any():
         total_mask = df["CRE Property Type"].str.contains("Total", case=False, na=False)
         subtotal = (df.loc[~total_mask, "Loan Amount"].astype(str).str.replace(",", "", regex=False).astype(float).sum())
         df.loc[total_mask, "Loan Amount"] = subtotal
 
+##### Formats the 'Loan Amount' column by removing commas, converting to numeric, and formatting with commas for thousands separators #####
 df["Loan Amount"] = pd.to_numeric(df["Loan Amount"].astype(str).str.replace(",", "", regex=False),errors="coerce")
-df["Loan Amount"] = df["Loan Amount"].map(lambda v: f"{v:,.0f}" if pd.notna(v) else "")
+df["Loan Amount"] = df["Loan Amount"].map(lambda a: f"{a:,.0f}" if pd.notna(a) else "")
 
 print("\n ===== Override Table ===== \n")
 print(df.to_markdown(index=False))

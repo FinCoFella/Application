@@ -60,14 +60,17 @@ completion = client.chat.completions.create(
     ]
 )
 
+##### Extracts and stores a markdown table from the LLM response #####
 markdown_table = completion.choices[0].message.content
 print("\n ===== Raw Markdown Table ===== \n")
 print(markdown_table)
 
+##### Parses the markdown table into a DataFrame #####
 lines = markdown_table.strip().split('\n')
 rows = [re.split(r'\s*\|\s*', row.strip())[1:-1] for row in lines if "|" in row and "---" not in row]
 df = pd.DataFrame(rows[1:], columns=rows[0])
 
+##### Manually insert override values for specific CRE property type labels #####
 corrections = {
     "Multi-family": 8_010,    
     "Office": 1_009,
@@ -77,16 +80,17 @@ corrections = {
     "Other": 2_138
 }
 
+##### Applies the manual override values to the 'CRE Property Type' rows in the DataFrame #####
 df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"] = (
-    df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "CRE Property Type"]
-    .map(corrections)
+    df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "CRE Property Type"].map(corrections)
 )
 
+##### Calculates the total loan amount value for the 'Total CRE' row in the DataFrame #####
 df.loc[df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"] = (
-    df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"]
-    .astype(float).sum()
+    df.loc[~df["CRE Property Type"].str.contains("Total", case=False), "Loan Amount"].astype(float).sum()
 )
 
+##### Casts the 'Loan Amount' column to float and formats it with commas and no decimal places #####
 df["Loan Amount"] = df["Loan Amount"].astype(float).apply(lambda x: f"{x:,.0f}")
 
 print("\n ===== Override Table ===== \n")
