@@ -2,18 +2,20 @@ import tabula
 import pandas as pd
 from pathlib import Path
 
-# Adjust
+##### Extract tables from a specific page of the 10-Q PDF using tabula-py #####
 pdf_path = "/home/fincofella/dev/Application/10QK_PDFs/RF/RF_1Q24_10Q.pdf"
-# Adjust
 tables = tabula.read_pdf(pdf_path, pages=62, multiple_tables=True, stream=True)
 
+##### Print all extracted tables and place the first table into a DataFrame #####
 for i, table in enumerate(tables):
     print(f"Table {i}:\n", table, "\n")
 df = tables[0]
-# Adjust
+
+##### Select specific rows and columns in the DataFrame, reset the index, and rename columns #####
 property_df = df.iloc[1:13, [0, 3]].reset_index(drop=True)
 property_df.columns = ['CRE Property Type', 'Loan Amount']
 
+##### Rename the original labels in 'CRE Property Type' column to a set of standardised labels #####
 row_rename_map = {
     "Residential homebuilders": "Residential",
     "Residential land": "Residential",
@@ -27,19 +29,23 @@ row_rename_map = {
     "Hotel": "Lodging",
 }
 
+##### Apply the renamed labels, convert the 'Loan Amount' data type into a float, and aggregate the loan amount values by the renamed property type labels #####
 property_df["CRE Property Type"] = property_df["CRE Property Type"].replace(row_rename_map)
 property_df["Loan Amount"] = property_df["Loan Amount"].replace({",": ""}, regex=True).astype(float)
 property_df = property_df.groupby("CRE Property Type", as_index=False)["Loan Amount"].sum()
-# Adjust
+
+##### Add additional columns with constant values to the DataFrame #####
 property_df["Ticker"] = "RF"
 property_df["Quarter"] = "1Q24"
 property_df["Unit"] = "mn"
 property_df["Currency"] = "USD"
 property_df["Category"] = "CRE"
 
+#### Reorder the columns of the DataFrame #####
 column_order = ["Ticker", "Quarter", "CRE Property Type", "Loan Amount", "Unit", "Currency", "Category"]
 property_df = property_df[column_order]
-# Adjust
+
+##### Create a 'Total CRE' row for the DataFrame that sums the 'Loan Amount' column #####
 total_row = pd.DataFrame([{
     "Ticker": "RF",
     "Quarter": "1Q24",
@@ -50,20 +56,23 @@ total_row = pd.DataFrame([{
     "Category": "CRE"
 }])
 
+##### Append the 'Total CRE' row to the DataFrame and format the 'Loan Amount' column with commas #####
 property_df = pd.concat([property_df, total_row], ignore_index=True)
-
 property_df["Loan Amount"] = property_df["Loan Amount"].apply(lambda x: f"{int(x):,}")
-# Adjust
+
 print("\n============== Extracted CRE 1Q24 Loan Portfolio Table ==============")
 print(property_df, "\n")
 
+#### Convert the 'Loan Amount' column to integer values and remove commas #####
 property_df["Value"] = property_df["Loan Amount"].str.replace(",", "", regex=False).astype(int)
+#### Rename columns and reorder the columns in the final DataFrame #####
 property_df = property_df.rename(columns={"CRE Property Type": "Line_Item_Name"})
 property_df = property_df[["Ticker", "Quarter", "Line_Item_Name", "Value", "Unit", "Currency", "Category"]]
 
 print("\n========================= SQL Format ========================")
 print(property_df)
 
+##### Save the DataFrame as a CSV file in the repository #####
 SCRIPT_DIR = Path(__file__).resolve().parent
 CSV = SCRIPT_DIR / "RF_1Q24_cre.csv"
 property_df.to_csv(CSV, index=False)
